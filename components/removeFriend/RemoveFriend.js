@@ -7,14 +7,62 @@ import {
 	TextInput,
 	Button,
 	Image,
+	StyleSheet,
+	Platform,
+	TouchableOpacity,
 } from 'react-native';
+import Meteor from 'react-native-meteor';
 
 export default class ReportAbuse extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			text: ''
+			text: '',
+			selected: ''
 		}
+		this.push = new Animated.Value(0);
+		this.styles = StyleSheet.create({
+			avatar: {
+				width: 40,
+				height: 40,
+				borderRadius: 40/2,
+				marginLeft: 10,
+				alignSelf: 'center',
+				backgroundColor: '#D7E3E3',
+				...Platform.select({
+	        ios: {
+	          shadowColor: '#000',
+	          shadowOffset: { width: 0, height: 5 },
+	          shadowOpacity: 0.8,
+	          shadowRadius: 5,    
+	        },
+	        android: {
+	          elevation: 5,
+	        },
+	      })
+			}
+		});
+	}
+
+	selectFriend = (e, item) => {
+		this.setState({selected: item});
+		Animated.spring(this.push, { toValue: 1 }).start();
+	}
+
+	closeConfirmation = () => {
+		this.setState({selected: ''});
+		Animated.spring(this.push, { toValue: 0 }).start();
+	}
+
+	removeFriend = () => {
+		const id = this.state.selected._id
+		Meteor.call('user.removeFriend', id, (error, result) => {
+			if(error) {
+				console.log(error);
+			} else {
+				this.closeConfirmation();
+			}
+		});
 	}
 
 	render = () => {
@@ -44,7 +92,88 @@ export default class ReportAbuse extends Component {
     				width:'100%',
     				justifyContent: 'center',
     				alignItems: 'center',
+    				transform: 
+            [
+            	{ translateY: this.push.interpolate({
+	                inputRange: [0, 1],
+	                outputRange: [ 0, 150 ],
+	              })
+            	}
+            ],
+            position: 'relative'
     			}}>
+    			<View style={{
+    				position: 'absolute',
+    				top: -150,
+    				left: 0,
+    				width: '100%',
+    				height: 150,
+    				backgroundColor: '#139A8F',
+    				justifyContent: 'center',
+    				alignItems: 'center'
+    			}}>
+    				<Text
+    					style={{
+    						color: '#fff',
+    						fontSize: 18,
+    						fontWeight: '400',
+    						marginBottom: 20,
+    						width: '95%',
+    						textAlign: 'center'
+    					}}>Are you sure you want to remove&nbsp;
+    						{this.state.selected.name === undefined ? '' : this.state.selected.name.split(' ')[0]} 
+    						&nbsp;from your friends list
+    					</Text>
+    					<View style={{
+    						flexDirection: 'row',
+    						width: '90%',
+    						justifyContent: 'center',
+    						alignItems: 'center'
+    					}}>
+    						<TouchableOpacity 
+    							onPress={this.closeConfirmation}
+    							style={{
+    								width: '45%',
+    								height: 30,
+    								borderRadius: 2.5,
+    								backgroundColor: "#fff",
+    								marginRight: '2.5%',
+    								justifyContent: 'center',
+    								alignItems: 'center',
+    								shadowColor: '#000',
+					          shadowOffset: { width: 0, height: 2 },
+					          shadowOpacity: 0.3,
+    							}}>
+    							<Text
+    								style={{
+    									fontSize: 14,
+    									color: '#139A8F',
+    									fontWeight: '600'
+    								}}>Cancel</Text>
+    						</TouchableOpacity>
+    						<TouchableOpacity
+    							onPress={this.removeFriend} 
+    							style={{
+    								width: '45%',
+    								height: 30,
+    								borderRadius: 2.5,
+    								backgroundColor: "#F53D4B",
+    								marginLeft: '2.5%',
+    								justifyContent: 'center',
+    								alignItems: 'center',
+    								shadowColor: '#000',
+					          shadowOffset: { width: 0, height: 2 },
+					          shadowOpacity: 0.3,
+    							}}>
+    							<Text
+    								style={{
+    									color: '#fff',
+    									fontSize: 14,
+    									fontWeight: '600'
+    								}}>Confirm</Text>
+    						</TouchableOpacity>
+    					</View>
+    			</View>
     			<View
     				style={{
     					width: '100%',
@@ -77,7 +206,6 @@ export default class ReportAbuse extends Component {
 		    				fontSize: 14,
 		    				marginBottom: 12.5,
 		    			}}
-		    			value={this.state.text}
 				    	placeholder="Find Someone"
 				    	onChangeText={(text) => this.setState({text})}
 		    			value={this.state.text} />
@@ -88,9 +216,10 @@ export default class ReportAbuse extends Component {
     					maxWidth: '100%',
     					marginBottom: 140,
     				}}
-					  data={[{key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'},{key: 'Joe Schmoe'}, {key: 'Squidward'},{key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'},{key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}, {key: 'Joe Schmoe'}, {key: 'Squidward'}]}
+					  data={this.props.friends}
 					  renderItem={({item}) => (
-					  	<View
+					  	<TouchableOpacity
+					  		onPress={(e) => this.selectFriend(e, item)}
 					  		style={{
 					  			width: '100%',
 					  			minWidth: '100%',
@@ -105,24 +234,20 @@ export default class ReportAbuse extends Component {
 		    					flexDirection: 'row',
 					  		}}>
 					  		<Image
-					  			style={{
-					  				width: 40,
-					  				height: 40,
-					  				borderRadius: 40/2,
-					  				marginLeft: 20,
-					  				alignSelf: 'center'
-					  			}} 
-					  			source={require('../../public/cityweb-small.jpg')}/>
+					  			style={this.styles.avatar} 
+					  			source={item.image === null ? 
+					  							require('../../public/person.png') : 
+					  							{uri: item.image} } />
 					  		<Text
 					  			style={{
-					  				marginRight: 20,
+					  				marginRight: 10,
 					  				alignSelf: 'center',
 					  				overflow: 'hidden',
 					  				color: '#8C8E93',
 					  				fontSize: 16,
 					  				textAlign: 'left',
-					  			}}>{item.key}</Text>
-					  	</View> 
+					  			}}>{item.name}</Text>
+					  	</TouchableOpacity> 
 					  )}
 					/>
     		</Animated.View>

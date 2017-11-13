@@ -9,6 +9,7 @@ import {
 	StyleSheet
 } from 'react-native';
 import UploadImage from './UploadImage';
+import Meteor from 'react-native-meteor';
 
 export default class Menu extends Component {
   constructor(props) {
@@ -158,6 +159,10 @@ export default class Menu extends Component {
   	});
   }
 
+  logout = () => {
+  	Meteor.logout();
+  }
+
   render = () => {
     return (
     	<Animated.View
@@ -167,6 +172,7 @@ export default class Menu extends Component {
     			<Animated.View
     				style={this.styles.container3}>
     				<UploadImage
+    					user={this.props.user}
     					imageAnim={this.imageAnim}
     					editProfile={this.editProfile} />
 		    		<Animated.Text 
@@ -231,6 +237,7 @@ export default class Menu extends Component {
 				    	</Text>
 				    </TouchableOpacity>
 			    	<TouchableOpacity
+			    		onPress={this.logout}
 			    		style={this.styles.loginButton}>
 			    		<Text
 				    		style={{

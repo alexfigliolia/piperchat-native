@@ -21,6 +21,7 @@ class App extends Component {
     super(props);
     this.state = {
       loggedIn: false,
+      user: null,
       menuActive: 0,
       reportAbuseActive: 0,
       removeFriendActive: 0
@@ -31,12 +32,29 @@ class App extends Component {
     this.rfAnim = new Animated.Value(0);
   }
 
-  componentWillMount() {
+  componentWillMount = () => {
     Meteor.connect(SERVER_URL); 
   }
 
-  componentDidMount() {
-    setTimeout(() => { console.log(this.props) }, 5000);
+  componentWillReceiveProps = (nextProps) => {
+    console.log(nextProps);
+    if(nextProps.user === null) {
+      this.getAuth();
+    } else {
+      this.letEmIn(nextProps);
+    }
+  }
+
+  getAuth = () => {
+    this.setState({ loggedIn: false, friends: [], user: null });
+  }
+
+  letEmIn = (path) => {
+    this.setState({
+      loggedIn: true,
+      user: path.user,
+      friends: path.buddyList.length > 0 ? path.buddyList[0].friends : []
+    });
   }
 
   openMenu = () => {
@@ -86,15 +104,16 @@ class App extends Component {
     return (
       <View style={styles.container}>
         <StatusBar
-           barStyle="light-content"
-         />
-        <Login />
+           barStyle="light-content" />
+        <Login 
+          loggedIn={this.state.loggedIn} />
         <Header
           openMenu={this.openMenu}
           raActive={this.state.reportAbuseActive}
           rfActive={this.state.removeFriendActive} />
         <Dashboard />
         <Menu 
+          user={this.state.user}
           active={this.state.menuActive}
           menuAnim={this.menuAnim}
           menuMove={this.menuMove}
@@ -104,6 +123,7 @@ class App extends Component {
           raAnim={this.raAnim}
           openRA={this.openReportAbuse} />
         <RemoveFriend
+          friends={this.state.friends}
           rfAnim={this.rfAnim}
           openRF={this.openRemoveFriend} />
       </View>

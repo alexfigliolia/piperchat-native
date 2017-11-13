@@ -8,6 +8,7 @@ import {
 	ImagePickerIOS
 } from 'react-native';
 import axios from 'axios';
+import Meteor from 'react-native-meteor';
 import { CloudConfig, AxiosConfig } from './CloudConfig';
 
 export default class UploadImage extends Component {
@@ -55,10 +56,18 @@ export default class UploadImage extends Component {
   	}
   }
 
+  componentWillReceiveProps = (nextProps) => {
+  	if(nextProps !== this.props) {
+  		this.setState({
+  			profileImage: nextProps.user === null || nextProps.user.image === null ? null : nextProps.user.image
+  		});
+  	}
+  }
+
   pickImage = () => {
     ImagePickerIOS.openSelectDialog({}, img => {
       this.setState({ profileImage: img });
-      this.props.editProfile();
+      if(this.props.imageAnim._value === 1) this.props.editProfile();
       const match = /\.(\w+)$/.exec(img);
   		const type = match ? `image/${match[1]}` : `image`;
       const photo = { uri: img, type: type, name: img.split('/').pop() };
@@ -70,27 +79,28 @@ export default class UploadImage extends Component {
 		    let url = res.data.secure_url.split('/');
 	      url.splice(-2, 0, 'q_auto/f_auto/w_200,h_200,c_fill');
 	      url = url.join('/');
-		    // Meteor.call('user.addImage', url, (error, result) => {
-		    // 	if(error) {
-		    // 		console.log(error);
-		    // 	} else {
-		    // 		Meteor.call('user.cleanImage', url, (error, result) => {
-		    // 			if(error) console.log(error);
-		    // 		}); 
-		    // 	}
-		    // });
+		    Meteor.call('user.addImage', url, (error, result) => {
+		    	if(error) {
+		    		console.log(error);
+		    	} else {
+		    		Meteor.call('user.cleanImage', url, (error, result) => {
+		    			if(error) console.log(error);
+		    		}); 
+		    	}
+		    });
 		  }).catch( err => console.log(err) );
     }, error => console.log(error));
   }
 
   render = () => {
-  	const profileImage = this.state.profileImage === null ? require('../../public/person.png') : {uri: this.state.profileImage};
     return (
     	<Animated.View
 				style={this.styles.imageContainer}>
 				<Animated.Image
 					style={this.styles.image}
-					source={profileImage} />
+					source={this.state.profileImage === null ?
+									require('../../public/person.png') :
+									{uri: this.state.profileImage} } />
 				<Animated.View
 					style={{
 						position: 'absolute',
@@ -118,7 +128,7 @@ export default class UploadImage extends Component {
 							justifyContent: 'center',
 							alignItems: 'center',
 							backgroundColor: '#139A8F',
-							borderRadius: 100/2
+							borderRadius: 100/2,
 						}}>
 						<Image	
 	  					style={{

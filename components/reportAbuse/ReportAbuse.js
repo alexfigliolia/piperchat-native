@@ -6,6 +6,7 @@ import {
 	TextInput,
 	TouchableOpacity 
 } from 'react-native';
+import Meteor from 'react-native-meteor';
 
 export default class ReportAbuse extends Component {
 	constructor(props) {
@@ -13,6 +14,19 @@ export default class ReportAbuse extends Component {
 		this.state = {
 			text: ''
 		}
+	}
+
+	submit = () => {
+		if(this.state.text !== '') {
+			Meteor.call('user.reportAbuse', this.state.text, (error, result) => {
+				if(error){
+					console.log(error);
+				} else {
+					this.setState({text: ''});
+					this.props.openRA();
+				}
+			});
+		} 
 	}
 
 	render = () => {
@@ -110,6 +124,7 @@ export default class ReportAbuse extends Component {
 				    	<Text style={{ color: '#139A8F', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
 				    </TouchableOpacity>
 				    <TouchableOpacity
+				    	onPress={this.submit}
 				    	style={{
 			    			width: '40%',
 			    			marginLeft: '2.5%',
