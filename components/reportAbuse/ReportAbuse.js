@@ -14,6 +14,13 @@ export default class ReportAbuse extends Component {
 		this.state = {
 			text: ''
 		}
+		this.thanks = new Animated.Value(0);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if(nextProps.raAnim._value === 1) {
+			this.closeThankyou();
+		}
 	}
 
 	submit = () => {
@@ -23,10 +30,18 @@ export default class ReportAbuse extends Component {
 					console.log(error);
 				} else {
 					this.setState({text: ''});
-					this.props.openRA();
+					this.thankyou();
 				}
 			});
 		} 
+	}
+
+	thankyou = () => {
+		Animated.spring(this.thanks, { toValue: 1 }).start();
+	}
+
+	closeThankyou = () => {
+		Animated.spring(this.thanks, { toValue: 0 }).start();
 	}
 
 	render = () => {
@@ -42,6 +57,7 @@ export default class ReportAbuse extends Component {
     			alignItems: 'center',
     			zIndex: 100,
     			backgroundColor: '#E3EBF0',
+    			overflow: 'hidden',
     			transform: 
             [
             	{ translateX: this.props.raAnim.interpolate({
@@ -56,7 +72,61 @@ export default class ReportAbuse extends Component {
     				width:'100%',
     				justifyContent: 'center',
     				alignItems: 'center',
+    				position: 'relative',
+    				transform: [
+    						{translateX: this.thanks.interpolate({
+    								inputRange: [0,1],
+    								outputRange: [0, -300]
+    							})
+    						}
+    					]
     			}}>
+    			<Animated.View
+    				style={{
+    					width: '100%',
+    					position:'absolute',
+    					top: 150,
+    					left: 0,
+    					justifyContent: 'center',
+    					alignItems: 'center',
+    					transform: [
+    						{translateX: 300 }
+    					]
+    				}}>
+    				<Text 
+    					style={{
+    						fontSize: 24,
+    						fontWeight: '700',
+    						color: '#139A8F',
+    						width: '92.5%',
+    						textAlign: 'center',
+    						marginBottom: 15,
+    					}}>Thank You!</Text>
+    				<Text
+    					style={{
+    						width: '92.5%',
+    						textAlign: 'center',
+    						fontSize: 15,
+    						fontWeight: '200',
+    						marginBottom: 20
+    					}}>We at Piper Chat appreciate the time you've taken to make our platform a better place</Text>
+    				<TouchableOpacity
+    					onPress={this.closeThankyou}
+    					style={{
+    						backgroundColor: '#139A8F',
+    						height: 35,
+    						width: '40%',
+    						borderRadius: 5,
+    						shadowColor: '#000',
+			          shadowOffset: { width: 0,  height: 2.5, },
+			          shadowColor: 'black',
+			          shadowOpacity: 0.2,
+			          justifyContent: 'center',
+			          alignItems: 'center'
+    					}}>
+    					<Text style={{color: '#fff', fontSize: 16, fontWeight: '600'}}>Go Back</Text>
+    				</TouchableOpacity>
+    			</Animated.View>
     			<Text
 	    			style={{
 	    				backgroundColor: 'transparent',

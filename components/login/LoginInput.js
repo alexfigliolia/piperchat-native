@@ -19,7 +19,7 @@ export default class LoginInput extends Component {
 	      justifyContent: 'center',
 	      alignItems: 'center',
 	      width: '85%',
-	      marginBottom: 5,
+	      marginBottom: 2.5,
 	      maxWidth: 300,
 	      position: 'relative',
 	    },
@@ -56,7 +56,7 @@ export default class LoginInput extends Component {
 	      color: '#fff',
 	      fontSize: 18,
 	      overflow: 'hidden',
-	      height: 30,
+	      // height: 30,
 	      paddingBottom: 5,
 	    },
 	    bottomBar: {
@@ -109,6 +109,9 @@ export default class LoginInput extends Component {
           onFocus={this.handleFocus}
           onBlur={this.handleBlur}
           selectionColor="#fff" 
+          blurOnSubmit={true}
+          onSubmitEditing={this.props.onEnter}
+          returnKeyType={this.props.returnType}
           secureTextEntry={this.props.secure}
           style={this.styles.input}
           value={this.state.text}

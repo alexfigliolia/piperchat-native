@@ -25,6 +25,7 @@ export default class UploadImage extends Component {
 				position: 'relative',
 				shadowColor: '#000',
 	      shadowOffset:{ width: 0,  height: 5 },
+	      shadowRadius: 5,
 	      shadowColor: 'black',
 	      shadowOpacity: 0.3,
 	      marginTop: 40,
@@ -35,7 +36,8 @@ export default class UploadImage extends Component {
 		            inputRange: [0, 1],
 		            outputRange: [ '0deg', '180deg' ],
 		          })
-		      	}
+		      	},
+		      	{ perspective: 1000 }
 		      ],
 			},
 		  image: {
@@ -66,30 +68,33 @@ export default class UploadImage extends Component {
 
   pickImage = () => {
     ImagePickerIOS.openSelectDialog({}, img => {
-      this.setState({ profileImage: img });
-      if(this.props.imageAnim._value === 1) this.props.editProfile();
-      const match = /\.(\w+)$/.exec(img);
-  		const type = match ? `image/${match[1]}` : `image`;
-      const photo = { uri: img, type: type, name: img.split('/').pop() };
-      const fd = new FormData();
-	    fd.append('upload_preset', CloudConfig.preset);
-		  fd.append('file', photo);
-	    axios.post(CloudConfig.url, fd, AxiosConfig)
-		  .then( res => {
-		    let url = res.data.secure_url.split('/');
-	      url.splice(-2, 0, 'q_auto/f_auto/w_200,h_200,c_fill');
-	      url = url.join('/');
-		    Meteor.call('user.addImage', url, (error, result) => {
-		    	if(error) {
-		    		console.log(error);
-		    	} else {
-		    		Meteor.call('user.cleanImage', url, (error, result) => {
-		    			if(error) console.log(error);
-		    		}); 
-		    	}
-		    });
-		  }).catch( err => console.log(err) );
+    	if(this.props.imageAnim._value === 1) this.props.editProfile();
+      this.setState({ profileImage: img }, this.uploadToCloudinary(img));
     }, error => console.log(error));
+  }
+
+  uploadToCloudinary = (img) => {
+  	const match = /\.(\w+)$/.exec(img);
+		const type = match ? `image/${match[1]}` : `image`;
+    const photo = { uri: img, type: type, name: img.split('/').pop() };
+    const fd = new FormData();
+    fd.append('upload_preset', CloudConfig.preset);
+	  fd.append('file', photo);
+    axios.post(CloudConfig.url, fd, AxiosConfig)
+	  .then( res => {
+	    let url = res.data.secure_url.split('/');
+      url.splice(-2, 0, 'q_auto/f_auto/w_200,h_200,c_fill');
+      url = url.join('/');
+	    Meteor.call('user.addImage', url, (error, result) => {
+	    	if(error) {
+	    		console.log(error);
+	    	} else {
+	    		Meteor.call('user.cleanImage', url, (error, result) => {
+	    			if(error) console.log(error);
+	    		}); 
+	    	}
+	    });
+	  }).catch( err => console.log(err) );
   }
 
   render = () => {

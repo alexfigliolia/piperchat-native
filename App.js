@@ -53,7 +53,16 @@ class App extends Component {
     this.setState({
       loggedIn: true,
       user: path.user,
-      friends: path.buddyList.length > 0 ? path.buddyList[0].friends : []
+      friends: path.buddyList.length > 0 ? path.buddyList[0].friends.sort((a, b) => {
+        if(a.name < b.name) return -1;
+        if(a.name > b.name) return 1;
+        return 0;
+      }) : [],
+      search: path.buddyList.length > 0 ? path.buddyList[0].friends.sort((a, b) => {
+        if(a.name < b.name) return -1;
+        if(a.name > b.name) return 1;
+        return 0;
+      }) : [],
     });
   }
 
@@ -65,9 +74,9 @@ class App extends Component {
     } else {
       this.setState(prevState => {
         if(prevState.menuActive === 0) {
-          Animated.spring(this.menuAnim, { duration: 300, toValue: 1 }).start();
+          Animated.spring(this.menuAnim, { toValue: 1, userNativeDriver: true }).start();
         } else {
-          Animated.timing(this.menuAnim, { duration: 350, toValue: 0 }).start();
+          Animated.spring(this.menuAnim, { toValue: 0, userNativeDriver: true }).start();
         }
         return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
       });
@@ -80,8 +89,8 @@ class App extends Component {
         Animated.spring(this.raAnim, { toValue: 1 }).start();
         Animated.timing(this.menuMove, { toValue: 1, duration: 300 }).start();
       } else {
-        Animated.spring(this.raAnim, { toValue: 0 }).start();
-        Animated.spring(this.menuMove, { toValue: 0 }).start();
+        Animated.spring(this.raAnim, { toValue: 0, userNativeDriver: true }).start();
+        Animated.spring(this.menuMove, { toValue: 0, userNativeDriver: true }).start();
       }
       return { reportAbuseActive: prevState.reportAbuseActive == 0 ? 1 : 0 }
     });
@@ -93,8 +102,8 @@ class App extends Component {
         Animated.spring(this.rfAnim, { toValue: 1 }).start();
         Animated.timing(this.menuMove, { toValue: 1, duration: 300 }).start();
       } else {
-        Animated.spring(this.rfAnim, { toValue: 0 }).start();
-        Animated.spring(this.menuMove, { toValue: 0 }).start();
+        Animated.spring(this.rfAnim, { toValue: 0, userNativeDriver: true }).start();
+        Animated.spring(this.menuMove, { toValue: 0, userNativeDriver: true }).start();
       }
       return { removeFriendActive: prevState.removeFriendActive == 0 ? 1 : 0 }
     });
@@ -112,20 +121,31 @@ class App extends Component {
           raActive={this.state.reportAbuseActive}
           rfActive={this.state.removeFriendActive} />
         <Dashboard />
-        <Menu 
-          user={this.state.user}
-          active={this.state.menuActive}
-          menuAnim={this.menuAnim}
-          menuMove={this.menuMove}
-          openRA={this.openReportAbuse}
-          openRF={this.openRemoveFriend} />
-        <ReportAbuse
-          raAnim={this.raAnim}
-          openRA={this.openReportAbuse} />
-        <RemoveFriend
-          friends={this.state.friends}
-          rfAnim={this.rfAnim}
-          openRF={this.openRemoveFriend} />
+        {
+          this.state.loggedIn &&
+          <Menu 
+            user={this.state.user}
+            active={this.state.menuActive}
+            menuAnim={this.menuAnim}
+            menuMove={this.menuMove}
+            openRA={this.openReportAbuse}
+            openRF={this.openRemoveFriend} />
+        }
+
+        {
+          this.state.loggedIn &&
+          <ReportAbuse
+            raAnim={this.raAnim}
+            openRA={this.openReportAbuse} />
+        }
+
+        {
+          this.state.loggedIn &&
+          <RemoveFriend
+            friends={this.state.friends}
+            rfAnim={this.rfAnim}
+            openRF={this.openRemoveFriend} />
+        }
       </View>
     );
   }
