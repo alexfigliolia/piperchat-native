@@ -18,7 +18,8 @@ export default class ReportAbuse extends Component {
 		super(props);
 		this.state = {
 			text: '',
-			selected: ''
+			selected: '',
+			friends: this.props.friends
 		}
 		this.push = new Animated.Value(0);
 		this.styles = StyleSheet.create({
@@ -44,6 +45,12 @@ export default class ReportAbuse extends Component {
 		});
 	}
 
+	componentWillReceiveProps(nextProps) {
+		if(nextProps.friends !== this.props.friends) {
+			this.setState({friends: this.props.friends});
+		}
+	}
+
 	selectFriend = (e, item) => {
 		this.setState({selected: item});
 		Animated.spring(this.push, { toValue: 1 }).start();
@@ -63,6 +70,22 @@ export default class ReportAbuse extends Component {
 				this.closeConfirmation();
 			}
 		});
+	}
+
+	search = (text) => {
+		this.setState({text});
+		if(text === '') {
+			this.setState({friends: this.props.friends});
+		} else {
+			const friends = this.state.friends;
+			const res = [];
+			for(let i = 0; i<friends.length; i++) {
+				if(friends[i].name.toLowerCase().indexOf(text.toLowerCase()) !== -1) {
+					res.push(friends[i]);
+				}
+			}
+			this.setState({friends: res});
+		}
 	}
 
 	render = () => {
@@ -207,7 +230,7 @@ export default class ReportAbuse extends Component {
 		    				marginBottom: 12.5,
 		    			}}
 				    	placeholder="Find Someone"
-				    	onChangeText={(text) => this.setState({text})}
+				    	onChangeText={(text) => this.search(text)}
 		    			value={this.state.text} />
     			</View>
     			<FlatList
@@ -216,7 +239,7 @@ export default class ReportAbuse extends Component {
     					maxWidth: '100%',
     					marginBottom: 140,
     				}}
-					  data={this.props.friends}
+					  data={this.state.friends}
 					  renderItem={({item}) => (
 					  	<TouchableOpacity
 					  		onPress={(e) => this.selectFriend(e, item)}

@@ -68,12 +68,12 @@ export default class UploadImage extends Component {
 
   pickImage = () => {
     ImagePickerIOS.openSelectDialog({}, img => {
-    	if(this.props.imageAnim._value === 1) this.props.editProfile();
       this.setState({ profileImage: img }, this.uploadToCloudinary(img));
     }, error => console.log(error));
   }
 
   uploadToCloudinary = (img) => {
+  	this.props.editProfile();
   	const match = /\.(\w+)$/.exec(img);
 		const type = match ? `image/${match[1]}` : `image`;
     const photo = { uri: img, type: type, name: img.split('/').pop() };
@@ -126,7 +126,7 @@ export default class UploadImage extends Component {
 				      ],
 					}}>
 					<TouchableOpacity
-	  				onPress={this.pickImage}
+	  				onPress={this.props.showProfile ? this.pickImage : null}
 						style={{
 							height: 100,
 							width: 100,

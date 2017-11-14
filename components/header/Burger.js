@@ -32,6 +32,10 @@ export default class Burger extends Component {
     if(nextProps.raActive === 0 && nextProps.rfActive === 0 && this.state.active) {
       this.makeX();
     }
+    if(nextProps.menuActive === 0) {
+      this.unmakeX();
+      this.setState({ active: false, active2: false });
+    }
   }
 
   spinCross = () => {

@@ -38,7 +38,8 @@ export default class Header extends Component {
         <Burger
           openMenu={this.props.openMenu}
           raActive={this.props.raActive}
-          rfActive={this.props.rfActive} />
+          rfActive={this.props.rfActive}
+          menuActive={this.props.menuActive} />
     	</View>
     );
   }

@@ -75,21 +75,17 @@ export default class Login extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    if(!nextProps.loggedIn) {
+    if(nextProps.user === null) {
       this.showLogin();
-      if(this.props.loggedIn) {
-        this.unmakeCircle();
-      } else {
-        setTimeout(() => {
-          this.setState({isLoading: false});
-          Animated.timing(this.entrance, { toValue: 1, duration: 700, userNativeDriver: true }).start();
-        }, 2100);
-      }
+      setTimeout(() => {
+        this.setState({isLoading: false});
+        Animated.timing(this.entrance, { toValue: 1, duration: 700, userNativeDriver: true }).start();
+      }, 2100);
     } else {
       setTimeout(() => { 
         this.setState({isLoading: false});
-        this.hideLogin()
-       }, 600)
+        this.hideLogin();
+      }, 600);
     }
   }
 
@@ -98,14 +94,14 @@ export default class Login extends Component {
       duration: event.duration,
       toValue: 1,
     }).start();
-  };
+  }
 
   keyboardWillHide = (event) => {
     Animated.timing(this.fontSize, {
       duration: event.duration,
       toValue: 0,
     }).start();
-  };
+  }
 
   showLogin = () => {
     Animated.timing(this.loginAnim, { toValue: 0, duration: 350, userNativeDriver: true }).start();
@@ -185,7 +181,10 @@ export default class Login extends Component {
       } else {
         this.makeCheck();
         this.setState({ error: "" });
-        setTimeout(() => { this.clearInputs(); }, 2000)
+        setTimeout(() => { 
+          this.unmakeCircle();
+          this.clearInputs(); 
+        }, 2000)
       }
     });
   }
@@ -210,7 +209,10 @@ export default class Login extends Component {
                 console.log(result);
               }
             });
-            this.clearInputs();
+            setTimeout(() => {
+              this.unmakeCircle();
+              this.clearInputs();
+            }, 2000)
           }
         });
       }
@@ -236,12 +238,12 @@ export default class Login extends Component {
     Animated.timing(this.borderRadius, { toValue: 2, duration: 300, userNativeDriver: true }).start();
     Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300, userNativeDriver: true }).start();
     Animated.timing(this.scale, { toValue: 0, duration: 150, delay: 0, userNativeDriver: true }).start();
-    Animated.spring(this.check, { toValue: 0, delay: 0, userNativeDriver: true }).start();
+    Animated.timing(this.check, { toValue: 0, duration: 150, delay: 0, userNativeDriver: true }).start();
   }
 
   makeCheck = () => {
     Animated.timing(this.scale, { toValue: 0, duration: 150, delay: 0, userNativeDriver: true }).start();
-    Animated.spring(this.check, { toValue: 1, delay: 150, userNativeDriver: true }).start();
+    Animated.timing(this.check, { toValue: 1, duration: 150, delay: 150, userNativeDriver: true }).start();
   }
 
   render = () => {

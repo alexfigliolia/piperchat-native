@@ -115,11 +115,12 @@ class App extends Component {
         <StatusBar
            barStyle="light-content" />
         <Login 
-          loggedIn={this.state.loggedIn} />
+          user={this.props.user} />
         <Header
           openMenu={this.openMenu}
           raActive={this.state.reportAbuseActive}
-          rfActive={this.state.removeFriendActive} />
+          rfActive={this.state.removeFriendActive}
+          menuActive={this.state.menuActive} />
         <Dashboard />
         {
           this.state.loggedIn &&
@@ -129,7 +130,8 @@ class App extends Component {
             menuAnim={this.menuAnim}
             menuMove={this.menuMove}
             openRA={this.openReportAbuse}
-            openRF={this.openRemoveFriend} />
+            openRF={this.openRemoveFriend}
+            openMenu={this.openMenu} />
         }
 
         {

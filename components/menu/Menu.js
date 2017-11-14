@@ -6,7 +6,8 @@ import {
 	Text, 
 	Animated,
 	TouchableOpacity,
-	StyleSheet
+	StyleSheet,
+	Keyboard
 } from 'react-native';
 import UploadImage from './UploadImage';
 import Meteor from 'react-native-meteor';
@@ -116,7 +117,7 @@ export default class Menu extends Component {
   			borderTopColor: '#CACCD0',
   			borderTopWidth: 1,
   			width: '100%',
-  			height: 40,
+  			height: 45,
 		  },
 		  reportButton: {
 		  	justifyContent: 'center',
@@ -126,10 +127,10 @@ export default class Menu extends Component {
   			borderBottomColor: '#CACCD0',
   			borderBottomWidth: 1,
   			width: '100%',
-  			height: 40,
+  			height: 45,
 		  },
 		  loginButton: {
-		  	marginTop: 15,
+		  	marginTop: 25,
   			backgroundColor: '#EC4760',
   			width: '80%',
   			height: 40,
@@ -155,12 +156,30 @@ export default class Menu extends Component {
     		Animated.spring(this.textAnim, { toValue: 1}).start();
     		Animated.spring(this.imageAnim, { toValue: 1}).start();
   		}
+  		Keyboard.dismiss();
   		return { showProfile: !prevState.showProfile }
   	});
   }
 
+  changeName = () => {
+  	if(this.state.text.length > 5 && this.state.text !== this.props.user.name) {
+  		Meteor.call('user.changeName', this.state.text, (error, result) => {
+ 				if(error) { 
+ 					console.log(error) 
+ 				} else { 
+ 					this.editProfile();
+ 					this.setState({text: ''})
+ 					Meteor.call('user.cleanName', this.state.text, (error, result) => {
+ 						if(error) console.log(error);
+ 					});
+ 				}
+ 			});
+  	}
+  }
+
   logout = () => {
-  	Meteor.logout();
+  	this.props.openMenu();
+  	setTimeout(() => { Meteor.logout() }, 300);
   }
 
   render = () => {
@@ -174,22 +193,23 @@ export default class Menu extends Component {
     				<UploadImage
     					user={this.props.user}
     					imageAnim={this.imageAnim}
-    					editProfile={this.editProfile} />
+    					editProfile={this.editProfile}
+    					showProfile={this.state.showProfile} />
 		    		<Animated.Text 
 		    			style={this.styles.animatedText}>
-		    			Alex Figliolia
+		    			{this.props.user !== null ? this.props.user.name : ''}
 		    		</Animated.Text>
 		    		<Animated.View
 		    			style={this.styles.container4}>
 		    			<TextInput 
 			    			style={this.styles.textInput} 
 				    		value={this.state.text}
-				    		placeholder="Alex Figliolia"
+				    		placeholder={this.props.user !== null ? this.props.user.name : ''}
 				    		placeholderTextColor="#139A8F"
 				    		onChangeText={(text) => this.setState({text})} />
 		    		</Animated.View>
 			    	<TouchableOpacity
-			    		onPress={this.editProfile}
+			    		onPress={this.state.text === '' ? this.editProfile : this.changeName }
 			    		style={{
 			    			justifyContent: 'center',
 			    			alignItems: 'center',
@@ -197,7 +217,7 @@ export default class Menu extends Component {
 			    			borderTopWidth: 1,
 			    			borderBottomWidth: 0,
 			    			width: '100%',
-			    			height: 40,
+			    			height: 45,
 			    			backgroundColor: this.state.showProfile ? '#139A8F' : 'transparent'
 			    		}}>
 		    			<Text
@@ -207,7 +227,7 @@ export default class Menu extends Component {
 				    			width: '100%',
 				    			textAlign: 'center'
 				    		}}>
-				    		{ this.state.showProfile ? 'Close' : 'Profile' }
+				    		{ !this.state.showProfile ? 'Profile' :  this.state.text !== '' ? 'Save' : 'Close' }
 				    	</Text>
 				    </TouchableOpacity>
 			    	<TouchableOpacity
@@ -228,12 +248,12 @@ export default class Menu extends Component {
 			    		style={this.styles.reportButton}>
 		    			<Text
 				    		style={{
-				    			color: '#859092',
+				    			color: '#EC4760',
 				    			fontSize: 16,
 				    			width: '100%',
 				    			textAlign: 'center'
 				    		}}>
-				    		ReportAbuse
+				    		Report Abuse
 				    	</Text>
 				    </TouchableOpacity>
 			    	<TouchableOpacity
