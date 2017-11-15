@@ -20,12 +20,6 @@ export default class ReportAbuse extends Component {
 		this.thanks = new Animated.Value(0);
 	}
 
-	componentWillReceiveProps(nextProps) {
-		if(nextProps.raAnim._value === 1) {
-			this.closeThankyou();
-		}
-	}
-
 	submit = () => {
 		Keyboard.dismiss();
 		if(this.state.text !== '') {
@@ -46,6 +40,7 @@ export default class ReportAbuse extends Component {
 
 	closeThankyou = () => {
 		Animated.spring(this.thanks, { toValue: 0, useNativeDriver: true }).start();
+		this.props.openRA();
 	}
 
 	measureRACW = (e) => {

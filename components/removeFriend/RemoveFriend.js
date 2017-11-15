@@ -95,7 +95,7 @@ export default class ReportAbuse extends Component {
     	<Animated.View
     		style={{
     			width: "70%",
-    			height: this.props.height - 60,
+    			height: this.props.height - 50,
     			position: 'absolute',
     			backgroundColor: '#E3EBF0',
     			top: 60,
@@ -239,7 +239,8 @@ export default class ReportAbuse extends Component {
     				style={{
     					width: '100%',
     					maxWidth: '100%',
-    					marginBottom: 73,
+    					height: '100%'
+    					// marginBottom: 73,
     				}}
 					  data={this.state.friends}
 					  renderItem={({item}) => (
