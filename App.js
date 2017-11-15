@@ -14,6 +14,7 @@ import Menu from './components/menu/Menu';
 import FriendList from './components/friendList/FriendList';
 import ReportAbuse from './components/reportAbuse/ReportAbuse';
 import RemoveFriend from './components/removeFriend/RemoveFriend';
+import Chat from './components/chat/Chat';
 import Meteor, { createContainer } from 'react-native-meteor';
 
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
@@ -241,6 +242,12 @@ class App extends Component {
             users={this.state.users}
             states={this.props.states}
             anim={this.friendsAnim} />
+        }
+
+        {
+          this.state.loggedIn &&
+          <Chat 
+            height={this.height} />
         }
       </View>
     );
