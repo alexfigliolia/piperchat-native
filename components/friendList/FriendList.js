@@ -150,19 +150,19 @@ export default class FriendList extends Component {
 		    					<TouchableOpacity
 		    						onPress={(e) => this.selectTab(e, 'friends')}
 		    						tab='friends' 
-		    						style={{ width: '33.333333334%', height: 45, justifyContent: 'center', alignItems: 'center', backgroundColor: '#75D39C'}}>
+		    						style={{ width: '33.333333334%', height: 55, justifyContent: 'center', alignItems: 'center', backgroundColor: '#75D39C'}}>
 		    						<Text style={{ color: '#fff'}}>Friends</Text>
 		    					</TouchableOpacity>
 		    					<TouchableOpacity
 		    						onPress={(e) => this.selectTab(e, 'requests')}
 		    						tab='requests' 
-		    						style={{ width: '33.333333334%', height: 45, justifyContent: 'center', alignItems: 'center', backgroundColor: '#A4ABF3'}}>
+		    						style={{ width: '33.333333334%', height: 55, justifyContent: 'center', alignItems: 'center', backgroundColor: '#A4ABF3'}}>
 		    						<Text style={{ color: '#fff'}}>Requests</Text>
 		    					</TouchableOpacity>
 		    					<TouchableOpacity
 		    						onPress={(e) => this.selectTab(e, 'users')}
 		    						tab='users' 
-		    						style={{ width: '33.333333334%', height: 45, justifyContent: 'center', alignItems: 'center', backgroundColor: '#8BCFF1'}}>
+		    						style={{ width: '33.333333334%', height: 55, justifyContent: 'center', alignItems: 'center', backgroundColor: '#8BCFF1'}}>
 		    						<Text style={{ color: '#fff'}}>Users</Text>
 		    					</TouchableOpacity>
 		    				</View>
@@ -198,20 +198,20 @@ export default class FriendList extends Component {
 	    						}}>
 	    					<UserList
 		    					listData={this.state.text !== '' && this.slider._value === 1 ? this.state.search : this.props.friends}
-		    					height={this.props.height - 105}
+		    					height={this.props.height - 115}
 		    					active={true}
 		    					for="friends"
 		    					width={this.state.LCW}
 		    					states={this.props.states} />
 		    				<UserList
 		    					listData={this.state.text !== '' && this.slider._value === 0 ? this.state.search : this.state.requests}
-		    					height={this.props.height - 105}
+		    					height={this.props.height - 115}
 		    					active={true}
 		    					width={this.state.LCW}
 		    					for="requests" />
 		    				<UserList
 		    					listData={this.state.text !== '' && this.slider._value === -1 ? this.state.search : this.props.users}
-		    					height={this.props.height - 105}
+		    					height={this.props.height - 115}
 		    					active={true}
 		    					width={this.state.LCW}
 		    					for="users" />

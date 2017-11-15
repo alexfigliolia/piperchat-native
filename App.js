@@ -85,6 +85,7 @@ class App extends Component {
   }
 
   openMenu = () => {
+    if(this.state.friendListActive === 1) this.openFriendList();
     if(this.state.reportAbuseActive === 1) {
       this.openReportAbuse();
     } else if(this.state.removeFriendActive === 1) {

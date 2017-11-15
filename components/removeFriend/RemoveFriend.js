@@ -19,7 +19,8 @@ export default class ReportAbuse extends Component {
 		this.state = {
 			text: '',
 			selected: '',
-			friends: this.props.friends
+			friends: this.props.friends,
+			RFCW: 300
 		}
 		this.push = new Animated.Value(0);
 		this.styles = StyleSheet.create({
@@ -85,6 +86,10 @@ export default class ReportAbuse extends Component {
 		}
 	}
 
+	measureRFCW = (e) => {
+		this.setState({ RFCW: e.nativeEvent.layout.width });
+	}
+
 	render = () => {
     return (
     	<Animated.View
@@ -102,11 +107,12 @@ export default class ReportAbuse extends Component {
             [
             	{ translateX: this.props.rfAnim.interpolate({
 	                inputRange: [0, 1],
-	                outputRange: [ 300, 0 ],
+	                outputRange: [ this.state.RFCW, 0 ],
 	              })
             	}
             ],
-    		}}>
+    		}}
+    		onLayout={(e) => this.measureRFCW(e)}>
     		<Animated.View
     			style={{
     				width:'100%',
@@ -141,8 +147,7 @@ export default class ReportAbuse extends Component {
     						width: '95%',
     						textAlign: 'center'
     					}}>Are you sure you want to remove&nbsp;
-    						{this.state.selected.name === undefined ? '' : this.state.selected.name.split(' ')[0]} 
-    						&nbsp;from your friends list
+    						{this.state.selected.name === undefined ? '' : this.state.selected.name.split(' ')[0]}?
     					</Text>
     					<View style={{
     						flexDirection: 'row',
@@ -208,12 +213,12 @@ export default class ReportAbuse extends Component {
 		    				backgroundColor: '#E3EBF0',
 		    				width: '95%',
 		    				maxWidth: 270,
-		    				fontSize: 18,
+		    				fontSize: 20,
 		    				textAlign:'center',
 		    				color: '#E94A5C',
 		    				marginBottom: 15,
 		    				fontWeight: '400',
-		    			}}>Select a friend who you would like to no longer be able to contact you
+		    			}}>Select a friend to be removed 
 		    		</Text>
 		    		<TextInput
 		    			style={{

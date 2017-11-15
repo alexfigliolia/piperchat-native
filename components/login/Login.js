@@ -32,17 +32,18 @@ export default class Login extends Component {
     this.fontSize = new Animated.Value(0);
     this.check = new Animated.Value(0);
     this.entrance = new Animated.Value(0);
+    this.collapse = new Animated.Value(0);
     this.styles = StyleSheet.create({
       container2: {
         flex: 1,
-        width: this.props.width,
-        height: this.props.height,
+        width: '100%',
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center'
       },
       uiWrapper: {
-        width: this.props.width,
-        height: this.props.height,
+        width: '100%',
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center'
       },
@@ -74,7 +75,7 @@ export default class Login extends Component {
       setTimeout(() => {
         this.setState({isLoading: false});
         Animated.timing(this.entrance, { toValue: 1, duration: 700, userNativeDriver: true }).start();
-      }, 2100);
+      }, 2200);
     } else {
       setTimeout(() => { 
         this.setState({isLoading: false});
@@ -98,11 +99,17 @@ export default class Login extends Component {
   }
 
   showLogin = () => {
-    Animated.timing(this.loginAnim, { toValue: 0, duration: 350, userNativeDriver: true }).start();
+     Animated.sequence([
+      Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, userNativeDriver: true }),
+      Animated.timing(this.loginAnim, { toValue: 0, duration: 350, userNativeDriver: true })
+    ]).start();
   }
 
   hideLogin = () => {
-    Animated.timing(this.loginAnim, { toValue: 1, duration: 350, userNativeDriver: true }).start();
+    Animated.sequence([
+      Animated.timing(this.loginAnim, { toValue: 1, duration: 350, userNativeDriver: true }),
+      Animated.timing(this.collapse, { toValue: 1, duration: 10, userNativeDriver: true })
+    ]).start();
   }
 
   toggleNewUser = () => {
@@ -149,21 +156,19 @@ export default class Login extends Component {
   }
 
   validateSignUp(obj) {
-    const e = obj.Email;
-    const p = obj.Password;
-    const n = obj.fullName;
-    if(n === "" || !validateName(n)) {
+    const { Email, Password, fullName } = obj;
+    if(fullName === "" || !validateName(fullName)) {
       this.setState({error: "Please enter your full name"});
       this.unmakeCircle();
-    } else if(!validateEmail(e)) {
+    } else if(!validateEmail(Email)) {
       this.setState({error: "Please enter a valid email"});
       this.unmakeCircle();
-    } else if(p.length < 5) {
+    } else if(Password.length < 5) {
       this.setState({error: "Your password must be at least 5 characters"});
       this.unmakeCircle();
     } else {
       this.setState({error: ""});
-      this.signUp(n, e, p);
+      this.signUp(fullName, Email, Password);
     }
   }
 
@@ -197,11 +202,7 @@ export default class Login extends Component {
             this.makeCheck();
             this.setState({ error: "" });
             Meteor.call('user.createBuddyList', (error, result) => {
-              if(error) {
-                console.log(error);
-              } else {
-                console.log(result);
-              }
+              if(error) console.log(error);
             });
             setTimeout(() => {
               this.unmakeCircle();
@@ -248,17 +249,21 @@ export default class Login extends Component {
           top: 0,
           left: 0,
           flex: 1,
-          height: this.props.height,
-          width: this.props.width,
+          height: '100%',
+          width: '100%',
           zIndex: 20934857,
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#139A8F',
+          opacity: this.loginAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 0]
+          }),
           transform: 
             [
-              { translateY: this.loginAnim.interpolate({
+              { scale: this.collapse.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, this.props.height * -1]
+                  outputRange: [1, 0]
                 })
               }
             ]
@@ -276,8 +281,8 @@ export default class Login extends Component {
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                  height: this.props.height,
-                  width: this.props.width,
+                  height: '100%',
+                  width: '100%',
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>
@@ -293,7 +298,7 @@ export default class Login extends Component {
               style={this.styles.uiWrapper}>
               <Animated.View
                 style={{
-                  width: this.props.width,
+                  width: '100%',
                   justifyContent: 'center',
                   alignItems: 'center',
                   opacity: this.entrance.interpolate({

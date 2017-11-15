@@ -17,7 +17,8 @@ export default class Menu extends Component {
     super(props);
     this.state = { 
     	text: '',
-    	showProfile: false
+    	showProfile: false,
+    	MCW: 300
    	}
    	this.inputAnim = new Animated.Value(0);
    	this.textAnim = new Animated.Value(0);
@@ -41,7 +42,7 @@ export default class Menu extends Component {
 		      [
 		      	{ translateX: this.props.menuAnim.interpolate({
 		            inputRange: [0, 1],
-		            outputRange: [ 300, 0 ],
+		            outputRange: [ this.state.MCW, 0 ],
 		          })
 		      	}
 		      ],
@@ -64,7 +65,7 @@ export default class Menu extends Component {
         [
         	{ translateX: this.props.menuMove.interpolate({
               inputRange: [0, 1],
-              outputRange: [ 0, -300 ],
+              outputRange: [ 0, this.state.MCW * -1 ],
             })
         	}
         ],
@@ -80,7 +81,7 @@ export default class Menu extends Component {
 					{translateX: 
 						this.textAnim.interpolate({
 							inputRange: [0, 1],
-              outputRange: [ 0, -230 ],
+              outputRange: [ 0, this.state.MCW * -1 ],
             })
         	}
 				]
@@ -96,7 +97,7 @@ export default class Menu extends Component {
 					{translateX: 
 						this.inputAnim.interpolate({
 							inputRange: [0, 1],
-              outputRange: [ 280, 0 ],
+              outputRange: [ this.state.MCW, 0 ],
             })
         	}
 				]
@@ -182,10 +183,15 @@ export default class Menu extends Component {
   	setTimeout(() => { Meteor.logout() }, 300);
   }
 
+  measureMCW(e) {
+  	this.setState({ MCW: e.nativeEvent.layout.width });
+  }
+
   render = () => {
     return (
     	<Animated.View
-    		style={this.styles.container}>
+    		style={this.styles.container}
+    		onLayout={(e) => this.measureMCW(e)}>
     		<Animated.View
     			style={this.styles.container2}>
     			<Animated.View
