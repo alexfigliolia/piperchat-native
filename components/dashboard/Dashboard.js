@@ -7,8 +7,9 @@ export default class Dashboard extends Component {
     	<View
     		style={{
     			backgroundColor: '#2F3034',
-    			flex: 1,
-    			width: '100%'
+    			height: this.props.height - 60,
+    			width: '100%',
+                flex: 1
     		}}>
     	</View>
     );

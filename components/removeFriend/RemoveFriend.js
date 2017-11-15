@@ -47,7 +47,7 @@ export default class ReportAbuse extends Component {
 
 	componentWillReceiveProps(nextProps) {
 		if(nextProps.friends !== this.props.friends) {
-			this.setState({friends: this.props.friends});
+			this.setState({friends: nextProps.friends});
 		}
 	}
 
@@ -62,13 +62,10 @@ export default class ReportAbuse extends Component {
 	}
 
 	removeFriend = () => {
+		this.closeConfirmation();
 		const id = this.state.selected._id
 		Meteor.call('user.removeFriend', id, (error, result) => {
-			if(error) {
-				console.log(error);
-			} else {
-				this.closeConfirmation();
-			}
+			if(error) console.log(error);
 		});
 	}
 
@@ -93,7 +90,7 @@ export default class ReportAbuse extends Component {
     	<Animated.View
     		style={{
     			width: "70%",
-    			height: '100%',
+    			height: this.props.height - 60,
     			position: 'absolute',
     			backgroundColor: '#E3EBF0',
     			top: 60,
@@ -237,7 +234,7 @@ export default class ReportAbuse extends Component {
     				style={{
     					width: '100%',
     					maxWidth: '100%',
-    					marginBottom: 140,
+    					marginBottom: 73,
     				}}
 					  data={this.state.friends}
 					  renderItem={({item}) => (
@@ -272,6 +269,7 @@ export default class ReportAbuse extends Component {
 					  			}}>{item.name}</Text>
 					  	</TouchableOpacity> 
 					  )}
+					  keyExtractor={(item, index) => index}
 					/>
     		</Animated.View>
     	</Animated.View>

@@ -49,7 +49,7 @@ export default class ReportAbuse extends Component {
     	<Animated.View
     		style={{
     			width: "70%",
-    			height: '100%',
+    			height: this.props.height - 60,
     			position: 'absolute',
     			top: 60,
     			right: 0,

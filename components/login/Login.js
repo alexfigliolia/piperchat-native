@@ -6,7 +6,6 @@ import {
   Text,
   TouchableWithoutFeedback,
   StyleSheet,
-  Dimensions,
   Keyboard, 
   KeyboardAvoidingView,
   ActivityIndicator
@@ -33,19 +32,17 @@ export default class Login extends Component {
     this.fontSize = new Animated.Value(0);
     this.check = new Animated.Value(0);
     this.entrance = new Animated.Value(0);
-    this.height = null;
-    this.width = null;
     this.styles = StyleSheet.create({
       container2: {
         flex: 1,
-        width: this.width,
-        height: this.height,
+        width: this.props.width,
+        height: this.props.height,
         justifyContent: 'center',
         alignItems: 'center'
       },
       uiWrapper: {
-        width: this.width,
-        height: this.height,
+        width: this.props.width,
+        height: this.props.height,
         justifyContent: 'center',
         alignItems: 'center'
       },
@@ -62,9 +59,6 @@ export default class Login extends Component {
   }
 
   componentDidMount = () => {
-    const {height, width} = Dimensions.get('window');
-    this.width = width;
-    this.height = height;
     this.keyboardWillShowSub = Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
     this.keyboardWillHideSub = Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
   }
@@ -254,8 +248,8 @@ export default class Login extends Component {
           top: 0,
           left: 0,
           flex: 1,
-          height: this.height,
-          width: this.width,
+          height: this.props.height,
+          width: this.props.width,
           zIndex: 20934857,
           justifyContent: 'center',
           alignItems: 'center',
@@ -264,7 +258,7 @@ export default class Login extends Component {
             [
               { translateY: this.loginAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, this.height * -1]
+                  outputRange: [0, this.props.height * -1]
                 })
               }
             ]
@@ -282,8 +276,8 @@ export default class Login extends Component {
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                  height: this.height,
-                  width: this.width,
+                  height: this.props.height,
+                  width: this.props.width,
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>
@@ -299,7 +293,7 @@ export default class Login extends Component {
               style={this.styles.uiWrapper}>
               <Animated.View
                 style={{
-                  width: this.width,
+                  width: this.props.width,
                   justifyContent: 'center',
                   alignItems: 'center',
                   opacity: this.entrance.interpolate({
@@ -309,7 +303,7 @@ export default class Login extends Component {
                   transform: [
                     { translateX: this.entrance.interpolate({
                         inputRange: [0,1],
-                        outputRange: [this.width/2, 0]
+                        outputRange: [this.props.width/2, 0]
                       })
                     }
                   ]
@@ -319,7 +313,7 @@ export default class Login extends Component {
                     height: 70, 
                     width: 70, 
                     marginBottom: -20,
-                    opacity: this.height <= 568 && this.state.newUser ?
+                    opacity: this.props.height <= 568 && this.state.newUser ?
                     this.fontSize.interpolate({
                       inputRange: [0, 1],
                       outputRange: [1, 0]

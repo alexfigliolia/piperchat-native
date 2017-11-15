@@ -4,12 +4,14 @@ import {
   Text, 
   View, 
   StatusBar, 
-  Animated 
+  Animated,
+  Dimensions
 } from 'react-native';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
 import Dashboard from './components/dashboard/Dashboard';
 import Menu from './components/menu/Menu';
+import FriendList from './components/friendList/FriendList';
 import ReportAbuse from './components/reportAbuse/ReportAbuse';
 import RemoveFriend from './components/removeFriend/RemoveFriend';
 import Meteor, { createContainer } from 'react-native-meteor';
@@ -24,16 +26,29 @@ class App extends Component {
       user: null,
       menuActive: 0,
       reportAbuseActive: 0,
-      removeFriendActive: 0
+      removeFriendActive: 0,
+      friendListActive: 0,
+      friends: [],
+      sentRequests: [],
+      requests: []
     }
+    this.width = null,
+    this.height = null,
     this.menuAnim = new Animated.Value(0);
     this.menuMove = new Animated.Value(0);
     this.raAnim = new Animated.Value(0);
     this.rfAnim = new Animated.Value(0);
+    this.friendsAnim = new Animated.Value(0);
   }
 
   componentWillMount = () => {
     Meteor.connect(SERVER_URL); 
+  }
+
+  componentDidMount = () => {
+    const {height, width} = Dimensions.get('window');
+    this.width = width;
+    this.height = height;
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -50,6 +65,7 @@ class App extends Component {
   }
 
   letEmIn = (path) => {
+    this.checkSelfFriend(path);
     this.setState({
       loggedIn: true,
       user: path.user,
@@ -63,6 +79,8 @@ class App extends Component {
         if(a.name > b.name) return 1;
         return 0;
       }) : [],
+      sentRequests: path.buddyList.length > 0 ? path.buddyList[0].sentRequests : [],
+      requests: path.buddyList.length > 0 ? path.buddyList[0].requests : []
     });
   }
 
@@ -109,34 +127,76 @@ class App extends Component {
     });
   }
 
+  openFriendList = () => {
+    if(this.state.menuActive === 1) this.openMenu();
+    this.setState(prevState => {
+      if(prevState.friendListActive === 0) {
+        Animated.spring(this.friendsAnim, {toValue: 1}).start();
+      } else {
+        Animated.spring(this.friendsAnim, {toValue: 0}).start();
+      }
+      return {
+        friendListActive: prevState.friendListActive == 0 ? 1 : 0 
+      }
+    });
+  }
+
+  checkSelfFriend = (path) => {
+    if(path.users.length > 0) {
+      const users = path.users;
+      const friends = path.buddyList[0].friends;
+      const requests = path.buddyList[0].requests;
+      const sent = path.buddyList[0].sentRequests;
+      const arr = friends.concat(requests, sent);
+      const unique = [];
+      for(let i = 0; i<users.length; i++) {
+        let isUnique = true;
+        for(let j = 0; j<arr.length; j++) {
+          if(users[i]._id === arr[j]._id || users[i]._id === Meteor.userId()) {
+            isUnique = false;
+            break;
+          }
+        }
+        if(isUnique) unique.push(users[i]);
+      }
+      this.setState({users: unique});
+    }
+  }
+
   render = () => {
     return (
       <View style={styles.container}>
         <StatusBar
            barStyle="light-content" />
         <Login 
-          user={this.props.user} />
+          user={this.props.user}
+          width={this.width}
+          height={this.height} />
         <Header
           openMenu={this.openMenu}
           raActive={this.state.reportAbuseActive}
           rfActive={this.state.removeFriendActive}
-          menuActive={this.state.menuActive} />
-        <Dashboard />
+          menuActive={this.state.menuActive}
+          openFriendList={this.openFriendList}  />
+        <Dashboard 
+          height={this.props.height} />
         {
           this.state.loggedIn &&
           <Menu 
+            height={this.height}
             user={this.state.user}
             active={this.state.menuActive}
             menuAnim={this.menuAnim}
             menuMove={this.menuMove}
             openRA={this.openReportAbuse}
             openRF={this.openRemoveFriend}
-            openMenu={this.openMenu} />
+            openMenu={this.openMenu}/>
         }
 
         {
           this.state.loggedIn &&
           <ReportAbuse
+            height={this.height}
             raAnim={this.raAnim}
             openRA={this.openReportAbuse} />
         }
@@ -144,9 +204,22 @@ class App extends Component {
         {
           this.state.loggedIn &&
           <RemoveFriend
+            height={this.height}
             friends={this.state.friends}
             rfAnim={this.rfAnim}
             openRF={this.openRemoveFriend} />
+        }
+
+        {
+          this.state.loggedIn &&
+          <FriendList
+            height={this.height}
+            friends={this.state.friends}
+            requests={this.state.requests}
+            sentRequests={this.state.sentRequests}
+            users={this.state.users}
+            states={this.props.states}
+            anim={this.friendsAnim} />
         }
       </View>
     );
@@ -177,8 +250,8 @@ export default AppContainer = createContainer(() => {
   const buddyListReady = userBuddyList.ready();
   const conversationsReady = userConversations.ready();
   const messagesReady = userMessages.ready();
-  const users = Meteor.collection('allUserData').find();
-  const states = Meteor.collection('userPresence').find();
+  const users = Meteor.collection('users').find();
+  const states = Meteor.collection('presences').find();
   const buddyList = Meteor.collection('buddyLists').find();
   const conversations = Meteor.collection('conversations').find();
   const messages = Meteor.collection('messages').find({}, {sort: {date: 1}});
