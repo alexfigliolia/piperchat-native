@@ -5,7 +5,8 @@ import {
   View, 
   StatusBar, 
   Animated,
-  Dimensions
+  Dimensions,
+  Keyboard
 } from 'react-native';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
@@ -14,9 +15,11 @@ import Menu from './components/menu/Menu';
 import FriendList from './components/friendList/FriendList';
 import ReportAbuse from './components/reportAbuse/ReportAbuse';
 import RemoveFriend from './components/removeFriend/RemoveFriend';
+import Modal from './components/modal/Modal';
 import Chat from './components/chat/Chat';
 import Meteor, { createContainer } from 'react-native-meteor';
-
+import PushNotification from 'react-native-push-notification';
+import update from 'immutability-helper';
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
 
 class App extends Component {
@@ -31,7 +34,10 @@ class App extends Component {
       friendListActive: 0,
       friends: [],
       sentRequests: [],
-      requests: []
+      requests: [],
+      openChats: [],
+      currentFriendSelection: {},
+      unread: []
     }
     this.width = null,
     this.height = null,
@@ -40,6 +46,7 @@ class App extends Component {
     this.raAnim = new Animated.Value(0);
     this.rfAnim = new Animated.Value(0);
     this.friendsAnim = new Animated.Value(0);
+    this.modalAnim = new Animated.Value(0);
   }
 
   componentWillMount = () => {
@@ -50,6 +57,17 @@ class App extends Component {
     const {height, width} = Dimensions.get('window');
     this.width = width;
     this.height = height;
+    PushNotification.configure({
+      onNotification: function(notification) {
+        console.log('noty: ', notification);
+        if(notification.userInteraction) {
+          const oc = this.state.openChats;
+          const ns = update(oc, {$unshift: [this.props.messages[this.props.messages.length - 1].from]});
+          console.log(ns);
+          this.setState({openChats: ns});
+        }
+      }
+    });
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -58,6 +76,9 @@ class App extends Component {
       this.getAuth();
     } else {
       this.letEmIn(nextProps);
+    }
+    if(nextProps.messages.length > 0) {
+      this.checkMessages(nextProps.messages);
     }
   }
 
@@ -85,6 +106,26 @@ class App extends Component {
     });
   }
 
+  checkMessages = (messageList) => {
+    if(messageList[messageList.length - 1].from._id !== Meteor.userId() &&
+      messageList[messageList.length - 1].to._id === Meteor.userId()) 
+    {
+      this.sendNotification(messageList[messageList.length - 1]);
+      const ur = this.state.unread;
+      const ns = update(ur, {$push: [messageList[messageList.length - 1]]});
+      this.setState({unread: ns});
+    }
+    //CREATE COLLECTION OR PIECE OF USER OBJECT THAT CAN TRACK UNREAD MESSAGES
+    //FOR NOTIFICATIONS
+  }
+
+  sendNotification = (message) => {
+    PushNotification.localNotificationSchedule({
+      message: `New message from ${message.from.name}`,
+      date: new Date()
+    });
+  }
+
   openMenu = () => {
     if(this.state.friendListActive === 1) this.openFriendList();
     if(this.state.reportAbuseActive === 1) {
@@ -101,6 +142,7 @@ class App extends Component {
         return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
       });
     }
+    Keyboard.dismiss();
   }
 
   openReportAbuse = () => {
@@ -143,6 +185,10 @@ class App extends Component {
         friendListActive: prevState.friendListActive == 0 ? 1 : 0 
       }
     });
+    Keyboard.dismiss();
+    if(this.modalAnim._value === 1) {
+      Animated.spring(this.modalAnim, { toValue: 0}).start();
+    }
   }
 
   checkSelfFriend = (path) => {
@@ -183,6 +229,41 @@ class App extends Component {
     this.setState(prevState => {
       return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
     });
+  }
+
+  toggleChatOptions = (e, person) => {
+    if(person !== undefined) {
+      this.setState({currentFriendSelection: person});
+    }
+    if(this.modalAnim._value === 0) {
+      Animated.spring(this.modalAnim, { toValue: 1}).start();
+    } else {
+      Animated.spring(this.modalAnim, { toValue: 0}).start();
+    }
+  }
+
+  openChat = () => {
+    const chats = this.state.openChats;
+    const u = update(chats, {$unshift: [this.state.currentFriendSelection]});
+    this.setState({openChats: u}, () => {
+      this.toggleChatOptions();
+      this.openFriendList();
+      this.removeFromUnread();
+    });
+  }
+
+  closeChat = () => {
+    const chats = this.state.openChats;
+    const u = update(chats, {$splice: [[0, 1]]});
+    this.setState({openChats: u});
+  }
+
+  removeFromUnread = () => {
+    const ur = this.state.unread;
+    const ns = ur.filter(message => {
+      return message.from._id !== this.state.currentFriendSelection._id;
+    });
+    this.setState({unread: ns});
   }
 
   render = () => {
@@ -241,13 +322,27 @@ class App extends Component {
             sentRequests={this.state.sentRequests}
             users={this.state.users}
             states={this.props.states}
-            anim={this.friendsAnim} />
+            anim={this.friendsAnim}
+            toggleChatOptions={this.toggleChatOptions}
+            unread={this.state.unread} />
         }
+
+        <Modal 
+          anim={this.modalAnim}
+          toggleChatOptions={this.toggleChatOptions}
+          openChat={this.openChat} />
 
         {
           this.state.loggedIn &&
+          this.state.openChats.length > 0 &&
           <Chat 
-            height={this.height} />
+            height={this.height}
+            name={this.state.openChats[0].name}
+            id={this.state.openChats[0]._id}
+            image={this.state.openChats[0].image}
+            openChats={this.state.openChats}
+            messages={this.props.messages}
+            closeChat={this.closeChat} />
         }
       </View>
     );
@@ -257,6 +352,7 @@ class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: this.height,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'flex-start',

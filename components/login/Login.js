@@ -232,13 +232,13 @@ export default class Login extends Component {
     Animated.timing(this.buttonAnim, { toValue: 300, duration: 300, userNativeDriver: true }).start();
     Animated.timing(this.borderRadius, { toValue: 2, duration: 300, userNativeDriver: true }).start();
     Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300, userNativeDriver: true }).start();
-    Animated.timing(this.scale, { toValue: 0, duration: 150, delay: 0, userNativeDriver: true }).start();
-    Animated.timing(this.check, { toValue: 0, duration: 150, delay: 0, userNativeDriver: true }).start();
+    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, userNativeDriver: true }).start();
+    Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0, userNativeDriver: true }).start();
   }
 
   makeCheck = () => {
-    Animated.timing(this.scale, { toValue: 0, duration: 150, delay: 0, userNativeDriver: true }).start();
-    Animated.timing(this.check, { toValue: 1, duration: 150, delay: 150, userNativeDriver: true }).start();
+    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, userNativeDriver: true }).start();
+    Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150, userNativeDriver: true }).start();
   }
 
   render = () => {

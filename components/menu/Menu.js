@@ -6,6 +6,7 @@ import {
 	Text, 
 	Animated,
 	TouchableOpacity,
+	TouchableWithoutFeedback,
 	StyleSheet,
 	Keyboard
 } from 'react-native';
@@ -192,91 +193,94 @@ export default class Menu extends Component {
     	<Animated.View
     		style={this.styles.container}
     		onLayout={(e) => this.measureMCW(e)}>
-    		<Animated.View
-    			style={this.styles.container2}>
+    		<TouchableWithoutFeedback
+    			onPress={Keyboard.dismiss}>
     			<Animated.View
-    				style={this.styles.container3}>
-    				<UploadImage
-    					user={this.props.user}
-    					imageAnim={this.imageAnim}
-    					editProfile={this.editProfile}
-    					showProfile={this.state.showProfile} />
-		    		<Animated.Text 
-		    			style={this.styles.animatedText}>
-		    			{this.props.user !== null ? this.props.user.name : ''}
-		    		</Animated.Text>
-		    		<Animated.View
-		    			style={this.styles.container4}>
-		    			<TextInput 
-			    			style={this.styles.textInput} 
-				    		value={this.state.text}
-				    		placeholder={this.props.user !== null ? this.props.user.name : ''}
-				    		placeholderTextColor="#139A8F"
-				    		onChangeText={(text) => this.setState({text})} />
-		    		</Animated.View>
-			    	<TouchableOpacity
-			    		onPress={this.state.text === '' ? this.editProfile : this.changeName }
-			    		style={{
-			    			justifyContent: 'center',
-			    			alignItems: 'center',
-			    			borderTopColor: '#CACCD0',
-			    			borderTopWidth: 1,
-			    			borderBottomWidth: 0,
-			    			width: '100%',
-			    			height: 45,
-			    			backgroundColor: this.state.showProfile ? '#139A8F' : 'transparent'
-			    		}}>
-		    			<Text
+	    			style={this.styles.container2}>
+	    			<Animated.View
+	    				style={this.styles.container3}>
+	    				<UploadImage
+	    					user={this.props.user}
+	    					imageAnim={this.imageAnim}
+	    					editProfile={this.editProfile}
+	    					showProfile={this.state.showProfile} />
+			    		<Animated.Text 
+			    			style={this.styles.animatedText}>
+			    			{this.props.user !== null ? this.props.user.name : ''}
+			    		</Animated.Text>
+			    		<Animated.View
+			    			style={this.styles.container4}>
+			    			<TextInput 
+				    			style={this.styles.textInput} 
+					    		value={this.state.text}
+					    		placeholder={this.props.user !== null ? this.props.user.name : ''}
+					    		placeholderTextColor="#139A8F"
+					    		onChangeText={(text) => this.setState({text})} />
+			    		</Animated.View>
+				    	<TouchableOpacity
+				    		onPress={this.state.text === '' ? this.editProfile : this.changeName }
 				    		style={{
-				    			color: this.state.showProfile ? '#fff' : '#859092',
-				    			fontSize: 16,
+				    			justifyContent: 'center',
+				    			alignItems: 'center',
+				    			borderTopColor: '#CACCD0',
+				    			borderTopWidth: 1,
+				    			borderBottomWidth: 0,
 				    			width: '100%',
-				    			textAlign: 'center'
+				    			height: 45,
+				    			backgroundColor: this.state.showProfile ? '#139A8F' : 'transparent'
 				    		}}>
-				    		{ !this.state.showProfile ? 'Profile' :  this.state.text !== '' ? 'Save' : 'Close' }
-				    	</Text>
-				    </TouchableOpacity>
-			    	<TouchableOpacity
-			    		onPress={this.props.openRF}
-			    		style={this.styles.privacyButton}>
-				    	<Text
-				    		style={{
-				    			color:'#859092',
-				    			fontSize: 16,
-				    			width: '100%',
-				    			textAlign: 'center'
-				    		}}>
-				    		Privacy
-				    	</Text>
-				    </TouchableOpacity>
-			    	<TouchableOpacity
-			    		onPress={this.props.openRA}
-			    		style={this.styles.reportButton}>
-		    			<Text
-				    		style={{
-				    			color: '#EC4760',
-				    			fontSize: 16,
-				    			width: '100%',
-				    			textAlign: 'center'
-				    		}}>
-				    		Report Abuse
-				    	</Text>
-				    </TouchableOpacity>
-			    	<TouchableOpacity
-			    		onPress={this.logout}
-			    		style={this.styles.loginButton}>
-			    		<Text
-				    		style={{
-				    			color: '#fff',
-				    			fontSize: 17,
-				    			width: '100%',
-				    			textAlign: 'center'
-				    		}}>
-				    		Log Out
-				    	</Text>
-			    	</TouchableOpacity>
-    			</Animated.View>
-    		</Animated.View>
+			    			<Text
+					    		style={{
+					    			color: this.state.showProfile ? '#fff' : '#859092',
+					    			fontSize: 16,
+					    			width: '100%',
+					    			textAlign: 'center'
+					    		}}>
+					    		{ !this.state.showProfile ? 'Profile' :  this.state.text !== '' ? 'Save' : 'Close' }
+					    	</Text>
+					    </TouchableOpacity>
+				    	<TouchableOpacity
+				    		onPress={this.props.openRF}
+				    		style={this.styles.privacyButton}>
+					    	<Text
+					    		style={{
+					    			color:'#859092',
+					    			fontSize: 16,
+					    			width: '100%',
+					    			textAlign: 'center'
+					    		}}>
+					    		Privacy
+					    	</Text>
+					    </TouchableOpacity>
+				    	<TouchableOpacity
+				    		onPress={this.props.openRA}
+				    		style={this.styles.reportButton}>
+			    			<Text
+					    		style={{
+					    			color: '#EC4760',
+					    			fontSize: 16,
+					    			width: '100%',
+					    			textAlign: 'center'
+					    		}}>
+					    		Report Abuse
+					    	</Text>
+					    </TouchableOpacity>
+				    	<TouchableOpacity
+				    		onPress={this.logout}
+				    		style={this.styles.loginButton}>
+				    		<Text
+					    		style={{
+					    			color: '#fff',
+					    			fontSize: 17,
+					    			width: '100%',
+					    			textAlign: 'center'
+					    		}}>
+					    		Log Out
+					    	</Text>
+				    	</TouchableOpacity>
+	    			</Animated.View>
+	    		</Animated.View>
+    		</TouchableWithoutFeedback>
     	</Animated.View>
     );
   }

@@ -42,7 +42,8 @@ export default class UserList extends Component {
 				  		label={item.label}
 				  		id={item._id}
 				  		item={item}
-				  		checkPresent={this.checkPresent} /> 
+				  		checkPresent={this.checkPresent}
+				  		toggleChatOptions={this.props.toggleChatOptions} /> 
 				  )}
 				  keyExtractor={(item, index) => index}
 				/>

@@ -103,11 +103,11 @@ export default class LoginInput extends Component {
     return (
     	<View style={this.styles.inputContainer}>
         <Animated.Text 
-          keyboardType={this.props.keyboard}
           style={this.styles.placeholder}>{this.props.for}</Animated.Text>
         <TextInput
           onFocus={this.handleFocus}
           onBlur={this.handleBlur}
+          keyboardType={this.props.keyboard}
           selectionColor="#fff" 
           blurOnSubmit={true}
           onSubmitEditing={this.props.onEnter}

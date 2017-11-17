@@ -28,7 +28,8 @@ export default class FriendList extends Component {
   			alignItems: 'center',
   			width: '100%',
   			height: this.props.height,
-  			justifyContent: 'flex-start'
+  			justifyContent: 'flex-start',
+        overflow: 'hidden',
   		},
   		header: {
   			alignItems: 'center',
@@ -128,14 +129,13 @@ export default class FriendList extends Component {
 					shadowColor: '#000',
 			    shadowOffset:{ width: 5,  height: 0 },
 			    shadowColor: 'black',
-			    shadowOpacity: 0.3,
+			    shadowOpacity: 0.6,
 			    zIndex: 98,
-			    overflow: 'hidden',
 			    transform: 
 			      [
 			      	{ translateX: this.props.anim.interpolate({
 			            inputRange: [0, 1],
-			            outputRange: [ this.state.LCW/-1, 0 ],
+			            outputRange: [ (this.state.LCW + 10)/-1, 0 ],
 			          })
 			      	}
 			      ],
@@ -242,7 +242,8 @@ export default class FriendList extends Component {
 		    					active={true}
 		    					for="friends"
 		    					width={this.state.LCW}
-		    					states={this.props.states} />
+		    					states={this.props.states}
+                  toggleChatOptions={this.props.toggleChatOptions} />
 		    				<UserList
 		    					listData={this.state.text !== '' && this.slider._value === 0 ? this.state.search : this.state.requests}
 		    					height={this.props.height - 115}

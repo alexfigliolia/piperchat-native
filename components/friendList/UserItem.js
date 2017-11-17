@@ -75,7 +75,7 @@ class UserItem extends Component {
   render = () => {
     return (
     	<TouchableOpacity
-	  		// onPress={(e) => this.selectFriend(e, item)}
+	  		onPress={this.props.toggleChatOptions !== undefined ? (e) => this.props.toggleChatOptions(e, this.props.item) : null}
 	  		style={this.styles.listItem}>
 	  		<Image
 	  			style={this.styles.avatar} 

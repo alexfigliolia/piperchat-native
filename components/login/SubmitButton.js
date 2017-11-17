@@ -53,6 +53,7 @@ export default class SubmitButton extends Component {
 	            left: 3,
 	            width: 30,
 	            height: 30,
+	            zIndex: 2,
 	            transform: [
 	              { scale: this.props.check.interpolate({
 	                  inputRange: [0, 1],
