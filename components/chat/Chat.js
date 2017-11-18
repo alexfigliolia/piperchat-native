@@ -162,6 +162,14 @@ export default class Chat extends PureComponent {
   	}
   }
 
+  checkUnread = () => {
+  	if(this.props.unread.indexOf(this.props.id) !== -1) {
+  		Meteor.call('user.removeNew', this.props.id, (err, res) => {
+        if(err) console.log(err);
+      });
+  	}
+  }
+
   render = () => {
     return (
     	<Animated.View
@@ -238,6 +246,8 @@ export default class Chat extends PureComponent {
 									width: '100%',
 									backgroundColor: '#fff'
 								}}
+								onScroll={this.checkUnread}
+								scrollEventThrottle={1000}
 	    					data={this.state.visible.reverse()}
 	    					keyboardDismissMode="on-drag"
 	    					keyboardShouldPersistTaps="never"
@@ -278,6 +288,7 @@ export default class Chat extends PureComponent {
 								style={this.styles.input}
 								placeholder="Message" 
 								multiline={true}
+								onFocus={this.checkUnread}
 								onChangeText={(text) => this.inputText = text} />
 							<TouchableOpacity
 								onPress={this.sendMessage}

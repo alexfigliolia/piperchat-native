@@ -21,6 +21,7 @@ import Meteor, { createContainer } from 'react-native-meteor';
 import PushNotification from 'react-native-push-notification';
 import StatusBarSizeIOS from 'react-native-status-bar-size';
 import update from 'immutability-helper';
+import { alphabetize, checkIndexOf } from './components/helpers';
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
 
 class App extends Component {
@@ -62,7 +63,7 @@ class App extends Component {
     // this.height = height;
     this.setState({height})
     PushNotification.configure({
-      onNotification: function(notification) {
+      onNotification: (notification) => {
         console.log('noty: ', notification);
         if(notification.userInteraction) {
           const oc = this.state.openChats;
@@ -85,18 +86,10 @@ class App extends Component {
       this.getAuth();
     } else {
       this.letEmIn(nextProps);
-      if(nextProps.user.newMessages !== undefined &&
-         nextProps.user.newMessages.length !== 0 &&
-         nextProps.buddyList[0] !== undefined)
-      {
-        this.sortFriends(
-          nextProps.user.newMessages, 
-          nextProps.buddyList[0].friends.sort((a, b) => {
-            if(a.name < b.name) return -1;
-            if(a.name > b.name) return 1;
-            return 0;
-          }) : []
-        );
+      const buddyList = nextProps.buddyList[0];
+      const unread = nextProps.user.newMessages;
+      if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
+        this.sortFriendsUnread(unread, alphabetize(buddyList.friends));
       }
     }
     if(nextProps.messages.length > 0) {
@@ -105,23 +98,15 @@ class App extends Component {
   }
 
   getAuth = () => {
-    this.setState({ loggedIn: false, friends: [], user: null });
+    this.setState({ loggedIn: false, friends: [], user: null, search: [], sentRequests: [], requests: [], unread: [], openChats: [], currentFriendSelection: {} });
   }
 
   letEmIn = (path) => {
     this.setState({
       loggedIn: true,
       user: path.user,
-      friends: path.buddyList.length > 0 ? path.buddyList[0].friends.sort((a, b) => {
-        if(a.name < b.name) return -1;
-        if(a.name > b.name) return 1;
-        return 0;
-      }) : [],
-      search: path.buddyList.length > 0 ? path.buddyList[0].friends.sort((a, b) => {
-        if(a.name < b.name) return -1;
-        if(a.name > b.name) return 1;
-        return 0;
-      }) : [],
+      friends: path.buddyList.length > 0 ? alphabetize(path.buddyList[0].friends) : [],
+      search: path.buddyList.length > 0 ? alphabetize(path.buddyList[0].friends) : [],
       sentRequests: path.buddyList.length > 0 ? path.buddyList[0].sentRequests : [],
       requests: path.buddyList.length > 0 ? path.buddyList[0].requests : [],
       unread: path.user.newMessages !== undefined ? path.user.newMessages : []
@@ -132,11 +117,8 @@ class App extends Component {
   }
 
   checkMessages = (messageList) => {
-    if(messageList[messageList.length - 1].from._id !== Meteor.userId() &&
-      messageList[messageList.length - 1].to._id === Meteor.userId()) 
-    {
-      this.sendNotification(messageList[messageList.length - 1]);
-    }
+    const last = messageList[messageList.length - 1];
+    if(last.to._id === Meteor.userId()) this.sendNotification(last);
   }
 
   sendNotification = (message) => {
@@ -222,28 +204,6 @@ class App extends Component {
     }
   }
 
-  checkSelfFriend = (path) => {
-    if(path.users.length > 0) {
-      const users = path.users;
-      const friends = path.buddyList[0].friends;
-      const requests = path.buddyList[0].requests;
-      const sent = path.buddyList[0].sentRequests;
-      const arr = friends.concat(requests, sent);
-      const unique = [];
-      for(let i = 0; i<users.length; i++) {
-        let isUnique = true;
-        for(let j = 0; j<arr.length; j++) {
-          if(users[i]._id === arr[j]._id || users[i]._id === Meteor.userId()) {
-            isUnique = false;
-            break;
-          }
-        }
-        if(isUnique) unique.push(users[i]);
-      }
-      this.setState({users: unique});
-    }
-  }
-
   closeMenuAndRemoveFriend = () => {
     Animated.spring(this.menuAnim, { toValue: 0, userNativeDriver: true }).start();
     Animated.spring(this.rfAnim, { toValue: 0, userNativeDriver: true }).start();
@@ -273,13 +233,47 @@ class App extends Component {
     }
   }
 
+  checkSelfFriend = (path) => {
+    if(path.users.length > 0) {
+      const users = path.users;
+      const friends = path.buddyList[0].friends;
+      const requests = path.buddyList[0].requests;
+      const sent = path.buddyList[0].sentRequests;
+      const arr = friends.concat(requests, sent);
+      const unique = [];
+      for(let i = 0; i<users.length; i++) {
+        let isUnique = true;
+        for(let j = 0; j<arr.length; j++) {
+          if(users[i]._id === arr[j]._id || users[i]._id === Meteor.userId()) {
+            isUnique = false;
+            break;
+          }
+        }
+        if(isUnique) unique.push(users[i]);
+      }
+      this.setState({users: unique});
+    }
+  }
+
   openChat = () => {
     const chats = this.state.openChats;
-    const u = update(chats, {$unshift: [this.state.currentFriendSelection]});
-    this.setState({openChats: u}, () => {
+    const cf = this.state.currentFriendSelection;
+    const check = checkIndexOf(chats, cf);
+    let ns;
+    if(check.bool) {
+      const r = update(chats, {$splice: [[check.pos, 1]]});
+      ns = update(r, {$unshift: [cf]});
+    } else {
+      ns = update(chats, {$unshift: [cf]});
+    }
+    this.setState({openChats: ns}, () => {
       this.toggleChatOptions();
       this.openFriendList();
-      this.updateUnread();
+      if(this.state.unread.indexOf(cf._id) !== -1) {
+        Meteor.call('user.removeNew', cf._id, (err, res) => {
+          if(err) console.log(err);
+        });
+      }
     });
   }
 
@@ -289,10 +283,22 @@ class App extends Component {
     this.setState({openChats: u});
   }
 
-  sortFriends = (unread, friends) => {
+  sortFriendsUnread = (unread, friends) => {
     for(let i = 0; i<friends.length; i++) {
       for(let j = 0; j<unread.length; j++) {
         if(friends[i]._id === unread[j]) {
+          const r = update(friends, {$splice: [[i, 1]]});
+          const ns = update(r, {$unshift: [friends[i]]});
+          this.setState({friends: ns});
+        }
+      }
+    }
+  }
+
+  sortFriendsOpenChat = () => {
+    for(let i = 0; i<this.state.friends.length; i++) {
+      for(let k = 0; k<this.state.openChats.length; k++) {
+        if(friends[i]._id === this.state.openChats[k]._id) {
           const r = update(friends, {$splice: [[i, 1]]});
           const ns = update(r, {$unshift: [friends[i]]});
           this.setState({friends: ns});
@@ -308,11 +314,7 @@ class App extends Component {
     this.setState({unread: ns});
     this.sortFriends(
       ns,
-      this.props.buddyList[0].friends.sort((a, b) => {
-        if(a.name < b.name) return -1;
-        if(a.name > b.name) return 1;
-        return 0;
-      })
+      this.props.buddyList[0].friends
     );
   }
 
@@ -324,7 +326,8 @@ class App extends Component {
         <Login 
           user={this.props.user}
           width={this.width}
-          height={this.state.height} />
+          height={this.state.height}
+          loggedIn={this.state.loggedIn} />
         <Header
           openMenu={this.openMenu}
           raActive={this.state.reportAbuseActive}
@@ -393,7 +396,8 @@ class App extends Component {
             image={this.state.openChats[0].image}
             openChats={this.state.openChats}
             messages={this.props.messages}
-            closeChat={this.closeChat} />
+            closeChat={this.closeChat}
+            unread={this.state.unread} />
         }
       </View>
     );

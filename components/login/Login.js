@@ -70,7 +70,7 @@ export default class Login extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    if(nextProps.user === null) {
+    if(nextProps.user === null || !nextProps.loggedIn) {
       this.showLogin();
       setTimeout(() => {
         this.setState({isLoading: false});
