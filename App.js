@@ -19,6 +19,7 @@ import Modal from './components/modal/Modal';
 import Chat from './components/chat/Chat';
 import Meteor, { createContainer } from 'react-native-meteor';
 import PushNotification from 'react-native-push-notification';
+import StatusBarSizeIOS from 'react-native-status-bar-size';
 import update from 'immutability-helper';
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
 
@@ -26,6 +27,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      height: '100%',
+      inCall: false,
       loggedIn: false,
       user: null,
       menuActive: 0,
@@ -56,7 +59,8 @@ class App extends Component {
   componentDidMount = () => {
     const {height, width} = Dimensions.get('window');
     this.width = width;
-    this.height = height;
+    // this.height = height;
+    this.setState({height})
     PushNotification.configure({
       onNotification: function(notification) {
         console.log('noty: ', notification);
@@ -68,14 +72,32 @@ class App extends Component {
         }
       }
     });
+    StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
+  }
+
+  componentWillUnmount = () => {
+    StatusBarSizeIOS.removeEventListener('willChange', this.adjustHeight);
   }
 
   componentWillReceiveProps = (nextProps) => {
     console.log(nextProps);
-    if(nextProps.user === null) {
+    if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
     } else {
       this.letEmIn(nextProps);
+      if(nextProps.user.newMessages !== undefined &&
+         nextProps.user.newMessages.length !== 0 &&
+         nextProps.buddyList[0] !== undefined)
+      {
+        this.sortFriends(
+          nextProps.user.newMessages, 
+          nextProps.buddyList[0].friends.sort((a, b) => {
+            if(a.name < b.name) return -1;
+            if(a.name > b.name) return 1;
+            return 0;
+          }) : []
+        );
+      }
     }
     if(nextProps.messages.length > 0) {
       this.checkMessages(nextProps.messages);
@@ -87,7 +109,6 @@ class App extends Component {
   }
 
   letEmIn = (path) => {
-    this.checkSelfFriend(path);
     this.setState({
       loggedIn: true,
       user: path.user,
@@ -102,8 +123,12 @@ class App extends Component {
         return 0;
       }) : [],
       sentRequests: path.buddyList.length > 0 ? path.buddyList[0].sentRequests : [],
-      requests: path.buddyList.length > 0 ? path.buddyList[0].requests : []
+      requests: path.buddyList.length > 0 ? path.buddyList[0].requests : [],
+      unread: path.user.newMessages !== undefined ? path.user.newMessages : []
     });
+    if(path.buddyList.length > 0) {
+      this.checkSelfFriend(path);
+    }
   }
 
   checkMessages = (messageList) => {
@@ -111,12 +136,7 @@ class App extends Component {
       messageList[messageList.length - 1].to._id === Meteor.userId()) 
     {
       this.sendNotification(messageList[messageList.length - 1]);
-      const ur = this.state.unread;
-      const ns = update(ur, {$push: [messageList[messageList.length - 1]]});
-      this.setState({unread: ns});
     }
-    //CREATE COLLECTION OR PIECE OF USER OBJECT THAT CAN TRACK UNREAD MESSAGES
-    //FOR NOTIFICATIONS
   }
 
   sendNotification = (message) => {
@@ -124,6 +144,17 @@ class App extends Component {
       message: `New message from ${message.from.name}`,
       date: new Date()
     });
+  }
+
+  adjustHeight = (nSBH) => {
+    if(nSBH !== null) {
+      const {height} = Dimensions.get('window');
+      if(nSBH > 20) {
+        this.setState({height: height - 20, inCall: true});
+      } else {
+        this.setState({height: height, inCall: false});
+      }
+    }
   }
 
   openMenu = () => {
@@ -248,7 +279,7 @@ class App extends Component {
     this.setState({openChats: u}, () => {
       this.toggleChatOptions();
       this.openFriendList();
-      this.removeFromUnread();
+      this.updateUnread();
     });
   }
 
@@ -258,12 +289,31 @@ class App extends Component {
     this.setState({openChats: u});
   }
 
-  removeFromUnread = () => {
-    const ur = this.state.unread;
-    const ns = ur.filter(message => {
-      return message.from._id !== this.state.currentFriendSelection._id;
+  sortFriends = (unread, friends) => {
+    for(let i = 0; i<friends.length; i++) {
+      for(let j = 0; j<unread.length; j++) {
+        if(friends[i]._id === unread[j]) {
+          const r = update(friends, {$splice: [[i, 1]]});
+          const ns = update(r, {$unshift: [friends[i]]});
+          this.setState({friends: ns});
+        }
+      }
+    }
+  }
+
+  updateUnread(){
+    const ns = this.state.unread.filter(str => {
+      return str !== this.state.currentFriendSelection._id;
     });
     this.setState({unread: ns});
+    this.sortFriends(
+      ns,
+      this.props.buddyList[0].friends.sort((a, b) => {
+        if(a.name < b.name) return -1;
+        if(a.name > b.name) return 1;
+        return 0;
+      })
+    );
   }
 
   render = () => {
@@ -274,7 +324,7 @@ class App extends Component {
         <Login 
           user={this.props.user}
           width={this.width}
-          height={this.height} />
+          height={this.state.height} />
         <Header
           openMenu={this.openMenu}
           raActive={this.state.reportAbuseActive}
@@ -282,11 +332,11 @@ class App extends Component {
           menuActive={this.state.menuActive}
           openFriendList={this.openFriendList}  />
         <Dashboard 
-          height={this.props.height} />
+          height={this.state.height} />
         {
           this.state.loggedIn &&
           <Menu 
-            height={this.height}
+            height={this.state.height}
             user={this.state.user}
             active={this.state.menuActive}
             menuAnim={this.menuAnim}
@@ -299,7 +349,7 @@ class App extends Component {
         {
           this.state.loggedIn &&
           <ReportAbuse
-            height={this.height}
+            height={this.state.height}
             raAnim={this.raAnim}
             openRA={this.openReportAbuse} />
         }
@@ -307,7 +357,7 @@ class App extends Component {
         {
           this.state.loggedIn &&
           <RemoveFriend
-            height={this.height}
+            height={this.state.height}
             friends={this.state.friends}
             rfAnim={this.rfAnim}
             openRF={this.openRemoveFriend} />
@@ -316,7 +366,7 @@ class App extends Component {
         {
           this.state.loggedIn &&
           <FriendList
-            height={this.height}
+            height={this.state.height}
             friends={this.state.friends}
             requests={this.state.requests}
             sentRequests={this.state.sentRequests}
@@ -324,7 +374,8 @@ class App extends Component {
             states={this.props.states}
             anim={this.friendsAnim}
             toggleChatOptions={this.toggleChatOptions}
-            unread={this.state.unread} />
+            unread={this.state.unread}
+            resortFriends={this.resortFriends} />
         }
 
         <Modal 
@@ -336,7 +387,7 @@ class App extends Component {
           this.state.loggedIn &&
           this.state.openChats.length > 0 &&
           <Chat 
-            height={this.height}
+            height={this.state.height}
             name={this.state.openChats[0].name}
             id={this.state.openChats[0]._id}
             image={this.state.openChats[0].image}

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	Animated,
 	View,
@@ -13,15 +13,13 @@ import {
 	FlatList
 } from 'react-native';
 import ChatBubble from './ChatBubble';
-import StatusBarSizeIOS from 'react-native-status-bar-size';
 import Meteor from 'react-native-meteor';
 
-export default class Chat extends Component {
+export default class Chat extends PureComponent {
   constructor(props) {
   	super(props);
   	this.state = {
-  		messages: [],
-  		inCall: false,
+  		visible: [],
   		isHidden: false,
   		text: ''
   	}
@@ -93,17 +91,15 @@ export default class Chat extends Component {
   	});
   	this.chat = new Animated.Value(0);
   	this.hideChat = new Animated.Value(0);
+  	this.inputText = '';
   }
 
   componentDidMount = () => {
     this.keyboardWillShowSub = Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
     this.keyboardWillHideSub = Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
-    StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
-    setTimeout(() => {if(this.flatList) this.flatList.scrollToEnd()}, 500);
   }
 
   componentWillUnmount = () => {
-  	StatusBarSizeIOS.removeEventListener('willChange', this.adjustHeight);
     this.keyboardWillShowSub.remove();
     this.keyboardWillHideSub.remove();
   }
@@ -111,7 +107,7 @@ export default class Chat extends Component {
   componentWillReceiveProps = (nextProps) => {
   	if(nextProps.id !== null && nextProps.id !== undefined && nextProps.messages.length > 0) {
   		this.getMessages(nextProps.messages, nextProps.id);
-  		setTimeout(() => {if(this.flatList) this.flatList.scrollToEnd()}, 10);
+  		setTimeout(() => { this.scrollToBottom(false) }, 10);
   	}	
   	if(this.props.openChats.length < nextProps.openChats.length && this.hideChat._value === this.props.height - 110) {
   		this.toggleChat();
@@ -124,27 +120,19 @@ export default class Chat extends Component {
   		const mes = messages[i];
   		if(mes.from._id === id || mes.to._id === id) m.push(mes);
   	}
-  	this.setState({messages: m});
-  	setTimeout(() => {if(this.flatList) this.flatList.scrollToEnd()}, 10);
+  	this.setState({visible: m.length >= 65 ? m.slice(m.length - 65) : m});
+  }
+
+  scrollToBottom = (bool=true) => {
+  	if(this.flatList) this.flatList.scrollToOffset(0, {animated: bool});
   }
 
   keyboardWillShow = (event) => {
     Animated.timing(this.chat, { duration: event.duration, toValue: 1, }).start();
-    setTimeout(() => {if(this.flatList) this.flatList.scrollToEnd()}, 10);
   }
 
   keyboardWillHide = (event) => {
     Animated.timing(this.chat, { duration: event.duration, toValue: 0, }).start();
-  }
-
- 	adjustHeight = (nSBH) => {
-    if(nSBH !== null) {
-    	if(nSBH > 20) {
-    		this.setState({inCall: true});
-    	} else {
-    		this.setState({inCall: false});
-    	}
-    }
   }
 
   toggleChat = () => {
@@ -159,12 +147,16 @@ export default class Chat extends Component {
   }
 
   sendMessage = () => {
-  	if(this.state.text !== '') {
-  		Meteor.call('message.send', this.props.id, this.state.text, (error, result) => {
+  	if(this.inputText !== '') {
+  		Meteor.call('message.send', this.props.id, this.inputText, (error, result) => {
 	      if(error) {
 	        console.log(error);
 	      } else {
-	        this.setState({text: ''})
+	        this.inputText = '';
+	        this.messager.clear();
+	        Meteor.call('user.addNew', this.props.id, (err, res) => {
+	        	if(err) console.log(err);
+	        });
 	      }
 	    });
   	}
@@ -232,9 +224,10 @@ export default class Chat extends Component {
 								transform: [
 				        	{translateY: this.chat.interpolate({
 				        			inputRange: [0, 1],
-				        			outputRange: [this.state.inCall ? -20 : 0, this.state.inCall ? -80 : -60]
+				        			outputRange: [this.props.inCall ? -20 : 0, this.props.inCall ? -80 : -60]
 				        		})
-				        	}
+				        	},
+				        	{ scaleY: -1 }
 				        ]
 							}}>
     					<FlatList
@@ -242,15 +235,22 @@ export default class Chat extends Component {
 	    					style={{
 									flex: 1,
 									height: '100%',
-									width: '100%'
+									width: '100%',
+									backgroundColor: '#fff'
 								}}
-	    					data={this.state.messages}
-	    					renderItem={({item}) => (
-							  	<ChatBubble 
+	    					data={this.state.visible.reverse()}
+	    					keyboardDismissMode="on-drag"
+	    					keyboardShouldPersistTaps="never"
+	    					renderItem={({item, index}) => 
+	    						<ChatBubble 
 							  		text={item.text}
-							  		from={item.from._id} />
-							  )}
-						  	keyExtractor={(item, index) => index} />
+							  		from={item.from._id}
+							  		scrollToBottom={this.scrollToBottom}
+							  		index={index}
+							  		length={this.state.visible.length} />
+						 			}
+						  	keyExtractor={(item, index) => index}
+						  	removeClippedSubviews={true} />
     				</Animated.View>
 						<Animated.View 
 							style={{
@@ -268,17 +268,17 @@ export default class Chat extends Component {
 				        transform: [
 				        	{translateY: this.chat.interpolate({
 				        			inputRange: [0, 1],
-				        			outputRange: [this.state.inCall ? -20 : 0, this.state.inCall ? -80 : -60]
+				        			outputRange: [this.props.inCall ? -20 : 0, this.props.inCall ? -80 : -60]
 				        		})
 				        	}
 				        ]
 							}}>
 							<TextInput 
+								ref={(r) => { this.messager = r; }}
 								style={this.styles.input}
 								placeholder="Message" 
 								multiline={true}
-								value={this.state.text}
-								onChangeText={(text) => this.setState({text})} />
+								onChangeText={(text) => this.inputText = text} />
 							<TouchableOpacity
 								onPress={this.sendMessage}
 								style={this.styles.send}>

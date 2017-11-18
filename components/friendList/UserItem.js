@@ -13,22 +13,10 @@ class UserItem extends Component {
   constructor(props) {
   	super(props);
   	this.state = {
-  		inAction: false
+  		inAction: false,
+  		hasNew: false
   	}
   	this.styles = StyleSheet.create({
-  		listItem: {
-				width: this.props.width,
-				minWidth: this.props.width,
-				maxWidth: this.props.width,
-				height: 50,
-				borderBottomColor: '#C9D2DA',
-				borderBottomWidth: 1,
-				borderTopColor: 'transparent',
-				borderTopWidth: 0,
-				justifyContent: 'space-between',
-				alignItems:'center',
-				flexDirection: 'row',
-			},
   		avatar: {
 				width: 35,
 				height: 35,
@@ -50,6 +38,27 @@ class UserItem extends Component {
 			}
   	});
   }
+
+  componentDidMount = () => {
+  	// const hasNew = this.hasNew();
+  	// this.setState({hasNew});
+  }
+
+  // hasNew = () => {
+  // 	if(this.props.for === 'friends') {
+  // 		let hn = false;
+  // 		for(let i = 0; i<this.props.unread.length; i++) {
+  // 			if(this.props.unread[i] === this.props.id) {
+  // 				hn = true;
+  // 				return hn;
+  // 				break;
+  // 			}
+  // 		}
+  // 		return hn;
+  // 	} else {
+  // 		return false;
+  // 	}
+  // }
 
   sendRequest = (e) => {
   	this.setState({inAction: true});
@@ -76,7 +85,20 @@ class UserItem extends Component {
     return (
     	<TouchableOpacity
 	  		onPress={this.props.toggleChatOptions !== undefined ? (e) => this.props.toggleChatOptions(e, this.props.item) : null}
-	  		style={this.styles.listItem}>
+	  		style={{
+					width: this.props.width,
+					minWidth: this.props.width,
+					maxWidth: this.props.width,
+					height: 50,
+					borderBottomColor: '#C9D2DA',
+					borderBottomWidth: 1,
+					borderTopColor: 'transparent',
+					borderTopWidth: 0,
+					justifyContent: 'space-between',
+					alignItems:'center',
+					flexDirection: 'row',
+					backgroundColor: this.props.hasUnread ? '#fff' : 'transparent'
+				}}>
 	  		<Image
 	  			style={this.styles.avatar} 
 	  			source={this.props.image === null ? require('../../public/person.png') : {uri: this.props.image} } />

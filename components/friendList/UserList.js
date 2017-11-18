@@ -43,6 +43,7 @@ export default class UserList extends Component {
 				  		id={item._id}
 				  		item={item}
 				  		checkPresent={this.checkPresent}
+				  		hasUnread={this.props.for !== 'friends' ? false: this.props.unread.indexOf(item._id) !== -1}
 				  		toggleChatOptions={this.props.toggleChatOptions} /> 
 				  )}
 				  keyExtractor={(item, index) => index}

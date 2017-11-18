@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
-import { View, Text } from 'react-native';
+import React, { PureComponent } from 'react';
+import { View, Text, Animated } from 'react-native';
 import Meteor from 'react-native-meteor';
 
-export default class ChatBubble extends Component {
+export default class ChatBubble extends PureComponent {
   constructor(props) {
   	super(props);
   }
@@ -24,7 +24,8 @@ export default class ChatBubble extends Component {
 	        shadowOffset:{  width: 0,  height: 2,  },
 	        shadowColor: 'black',
 	        shadowOpacity: 0.15,
-	        minHeight: 10
+	        minHeight: 10,
+          transform: [{ scaleY: -1 }]
     		}}>
     		<Text
     			style={{

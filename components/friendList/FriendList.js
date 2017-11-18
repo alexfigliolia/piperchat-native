@@ -159,6 +159,27 @@ export default class FriendList extends Component {
 		    						tab='friends' 
 		    						style={{ width: '33.333333334%', height: 55, justifyContent: 'center', alignItems: 'center', backgroundColor: '#75D39C'}}>
 		    						<Text style={{ color: '#fff'}}>Friends</Text>
+                    {
+                      this.props.unread.length > 0 &&
+                      <View 
+                        style={{
+                          height: 20,
+                          width: 20,
+                          backgroundColor: '#EE3B3B',
+                          borderRadius: 20/2,
+                          alignSelf: 'center',
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}>
+                        <Text
+                          style={{
+                            color: '#fff',
+                            padding: 0,
+                            fontSize: 10,
+                            textAlign: 'center'
+                          }}>{this.props.unread.length}</Text>
+                      </View>
+                    }
 		    					</TouchableOpacity>
 		    					<TouchableOpacity
 		    						onPress={(e) => this.selectTab(e, 'requests')}
@@ -243,6 +264,7 @@ export default class FriendList extends Component {
 		    					for="friends"
 		    					width={this.state.LCW}
 		    					states={this.props.states}
+                  unread={this.props.unread}
                   toggleChatOptions={this.props.toggleChatOptions} />
 		    				<UserList
 		    					listData={this.state.text !== '' && this.slider._value === 0 ? this.state.search : this.state.requests}
