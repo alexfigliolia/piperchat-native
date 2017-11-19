@@ -61,7 +61,7 @@ export default class UploadImage extends Component {
   componentWillReceiveProps = (nextProps) => {
   	if(nextProps !== this.props) {
   		this.setState({
-  			profileImage: nextProps.user === null || nextProps.user.image === null ? null : nextProps.user.image
+  			profileImage: nextProps.user === null || nextProps.user.image === null  || nextProps.user.image === undefined ? null : nextProps.user.image
   		});
   	}
   }

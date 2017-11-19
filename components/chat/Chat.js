@@ -90,13 +90,17 @@ export default class Chat extends PureComponent {
 			}
   	});
   	this.chat = new Animated.Value(0);
-  	this.hideChat = new Animated.Value(0);
+  	this.hideChat = new Animated.Value(this.props.height - 60);
   	this.inputText = '';
   }
 
   componentDidMount = () => {
     this.keyboardWillShowSub = Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
     this.keyboardWillHideSub = Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
+    setTimeout(() => {
+    	Animated.spring(this.hideChat, {toValue: 0}).start();
+    	this.setState({isHidded: false});
+    }, 200);
   }
 
   componentWillUnmount = () => {
@@ -133,6 +137,14 @@ export default class Chat extends PureComponent {
 
   keyboardWillHide = (event) => {
     Animated.timing(this.chat, { duration: event.duration, toValue: 0, }).start();
+  }
+
+  closeChat = () => {
+  	this.props.closeChat();
+  	if(this.props.openChats.length === 0) {
+  		Animated.spring(this.hideChat, {toValue: this.props.height - 60}).start();
+    	this.setState({ isHidded: false });
+  	}
   }
 
   toggleChat = () => {
@@ -195,7 +207,7 @@ export default class Chat extends PureComponent {
     				style={this.styles.center}>
     				<View style={this.styles.header}>
     					<TouchableOpacity
-    						onPress={this.props.closeChat}
+    						onPress={this.closeChat}
     						style={this.styles.headerButtonLeft}>
     						<Image 
     							style={{

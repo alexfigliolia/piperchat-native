@@ -6,7 +6,8 @@ import {
   StatusBar, 
   Animated,
   Dimensions,
-  Keyboard
+  Keyboard,
+  AsyncStorage
 } from 'react-native';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
@@ -74,6 +75,16 @@ class App extends Component {
       }
     });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
+    AsyncStorage.getItem('user')
+      .then(user => {
+        console.log(user);
+        if(user === null) {
+          this.setState({loggedIn: false, user: null});
+        } else {
+          this.setState({loggedIn: true, user: JSON.parse(user)});
+        }
+      }) 
+      .catch(err => console.log(err));
   }
 
   componentWillUnmount = () => {
@@ -82,6 +93,7 @@ class App extends Component {
 
   componentWillReceiveProps = (nextProps) => {
     console.log(nextProps);
+    AsyncStorage.setItem('user', JSON.stringify(nextProps.user)); 
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
     } else {
@@ -312,10 +324,7 @@ class App extends Component {
       return str !== this.state.currentFriendSelection._id;
     });
     this.setState({unread: ns});
-    this.sortFriends(
-      ns,
-      this.props.buddyList[0].friends
-    );
+    this.sortFriends(ns, this.props.buddyList[0].friends);
   }
 
   render = () => {
@@ -324,18 +333,23 @@ class App extends Component {
         <StatusBar
            barStyle="light-content" />
         <Login 
-          user={this.props.user}
+          user={this.state.user}
           width={this.width}
           height={this.state.height}
           loggedIn={this.state.loggedIn} />
+
         <Header
           openMenu={this.openMenu}
           raActive={this.state.reportAbuseActive}
           rfActive={this.state.removeFriendActive}
           menuActive={this.state.menuActive}
-          openFriendList={this.openFriendList}  />
-        <Dashboard 
-          height={this.state.height} />
+          openFriendList={this.openFriendList} />
+            
+        {
+          this.state.loggedIn &&
+          <Dashboard 
+            height={this.state.height} />
+        }
         {
           this.state.loggedIn &&
           <Menu 
@@ -408,7 +422,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: this.height,
-    backgroundColor: '#fff',
+    backgroundColor: '#2F3034',
     alignItems: 'center',
     justifyContent: 'flex-start',
     position: 'relative'

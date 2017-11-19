@@ -24,7 +24,18 @@ export default class SubmitButton extends Component {
 	        justifyContent: 'center',
 	        alignItems: 'center',
 	        borderRadius: this.props.borderRadius,
-	        overflow: 'hidden'
+	        overflow: 'hidden',
+	        opacity: this.props.entrance.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1]
+          }),
+          transform: [
+            {translateY: this.props.entrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [this.props.width / 2, 0]
+              })
+            }
+          ]
 	      }}>
 	      <TouchableOpacity
 	        onPress={this.props.submit}

@@ -15,14 +15,6 @@ export default class LoginInput extends Component {
   	}
   	this.inputAnim = new Animated.Value(0);
   	this.styles = StyleSheet.create({
-	  	inputContainer: {
-	      justifyContent: 'center',
-	      alignItems: 'center',
-	      width: '85%',
-	      marginBottom: 2.5,
-	      maxWidth: 300,
-	      position: 'relative',
-	    },
 	    placeholder: {
 	      fontSize: 18,
 	      backgroundColor: 'transparent',
@@ -101,7 +93,26 @@ export default class LoginInput extends Component {
 
   render = () => {
     return (
-    	<View style={this.styles.inputContainer}>
+    	<Animated.View 
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '85%',
+          marginBottom: 2.5,
+          maxWidth: 300,
+          position: 'relative',
+          opacity: this.props.entrance.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1]
+          }),
+          transform: [
+            {translateY: this.props.entrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [this.props.width / 2, 0]
+              })
+            }
+          ]
+        }}>
         <Animated.Text 
           style={this.styles.placeholder}>{this.props.for}</Animated.Text>
         <TextInput
@@ -120,7 +131,7 @@ export default class LoginInput extends Component {
          	style={this.styles.bottomBar}></Animated.View>
          <View
          	style={this.styles.bottomBarFixed}></View>
-      </View>
+      </Animated.View>
     );
   }
 }
