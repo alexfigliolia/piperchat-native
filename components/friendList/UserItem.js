@@ -39,27 +39,6 @@ class UserItem extends Component {
   	});
   }
 
-  componentDidMount = () => {
-  	// const hasNew = this.hasNew();
-  	// this.setState({hasNew});
-  }
-
-  // hasNew = () => {
-  // 	if(this.props.for === 'friends') {
-  // 		let hn = false;
-  // 		for(let i = 0; i<this.props.unread.length; i++) {
-  // 			if(this.props.unread[i] === this.props.id) {
-  // 				hn = true;
-  // 				return hn;
-  // 				break;
-  // 			}
-  // 		}
-  // 		return hn;
-  // 	} else {
-  // 		return false;
-  // 	}
-  // }
-
   sendRequest = (e) => {
   	this.setState({inAction: true});
   	Meteor.call('user.sendRequest', this.props.id, (error, result) => {

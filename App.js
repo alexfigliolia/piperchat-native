@@ -6,8 +6,7 @@ import {
   StatusBar, 
   Animated,
   Dimensions,
-  Keyboard,
-  AsyncStorage
+  Keyboard
 } from 'react-native';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
@@ -21,6 +20,7 @@ import Chat from './components/chat/Chat';
 import Meteor, { createContainer } from 'react-native-meteor';
 import PushNotification from 'react-native-push-notification';
 import StatusBarSizeIOS from 'react-native-status-bar-size';
+import LinearGradient from 'react-native-linear-gradient';
 import update from 'immutability-helper';
 import { alphabetize, checkIndexOf } from './components/helpers';
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
@@ -29,7 +29,9 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      rp: false,
       height: '100%',
+      width: 230,
       inCall: false,
       loggedIn: false,
       user: null,
@@ -37,12 +39,15 @@ class App extends Component {
       reportAbuseActive: 0,
       removeFriendActive: 0,
       friendListActive: 0,
+      modalActive: 0,
       friends: [],
       sentRequests: [],
       requests: [],
       openChats: [],
       currentFriendSelection: {},
-      unread: []
+      unread: [],
+      local: null,
+      remote: null
     }
     this.width = null,
     this.height = null,
@@ -52,6 +57,7 @@ class App extends Component {
     this.rfAnim = new Animated.Value(0);
     this.friendsAnim = new Animated.Value(0);
     this.modalAnim = new Animated.Value(0);
+    this.body = new Animated.Value(1);
   }
 
   componentWillMount = () => {
@@ -62,7 +68,7 @@ class App extends Component {
     const {height, width} = Dimensions.get('window');
     this.width = width;
     // this.height = height;
-    this.setState({height})
+    this.setState({height, width});
     PushNotification.configure({
       onNotification: (notification) => {
         console.log('noty: ', notification);
@@ -75,16 +81,6 @@ class App extends Component {
       }
     });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
-    AsyncStorage.getItem('user')
-      .then(user => {
-        console.log(user);
-        if(user === null) {
-          this.setState({loggedIn: false, user: null});
-        } else {
-          this.setState({loggedIn: true, user: JSON.parse(user)});
-        }
-      }) 
-      .catch(err => console.log(err));
   }
 
   componentWillUnmount = () => {
@@ -92,8 +88,8 @@ class App extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    if(!this.state.rp) this.setState({rp: true});
     console.log(nextProps);
-    AsyncStorage.setItem('user', JSON.stringify(nextProps.user)); 
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
     } else {
@@ -160,9 +156,15 @@ class App extends Component {
     } else {
       this.setState(prevState => {
         if(prevState.menuActive === 0) {
-          Animated.spring(this.menuAnim, { toValue: 1, userNativeDriver: true }).start();
+          Animated.parallel([
+            Animated.spring(this.menuAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 12.5 }),
+            Animated.timing(this.body, { toValue: 0, useNativeDriver: true, duration: 200 })
+          ]).start();
         } else {
-          Animated.spring(this.menuAnim, { toValue: 0, userNativeDriver: true }).start();
+          Animated.parallel([
+            Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 12.5 }),
+            Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 })
+          ]).start();
         }
         return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
       });
@@ -172,11 +174,15 @@ class App extends Component {
 
   openReportAbuse = () => {
     if(this.state.reportAbuseActive === 0) {
-      Animated.spring(this.raAnim, { toValue: 1 }).start();
-      Animated.timing(this.menuMove, { toValue: 1, duration: 300 }).start();
+      Animated.parallel([
+        Animated.spring(this.raAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }),
+        Animated.timing(this.menuMove, { toValue: 1, duration: 250, useNativeDriver: true })
+      ]).start();
     } else {
-      Animated.spring(this.raAnim, { toValue: 0, userNativeDriver: true }).start();
-      Animated.spring(this.menuMove, { toValue: 0, userNativeDriver: true }).start();
+      Animated.parallel([
+        Animated.spring(this.raAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 11 }),
+        Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true })
+      ]).start();
     }
     this.setState(prevState => {
       return { reportAbuseActive: prevState.reportAbuseActive == 0 ? 1 : 0 }
@@ -185,11 +191,11 @@ class App extends Component {
 
   openRemoveFriend = () => {
     if(this.state.removeFriendActive === 0) {
-      Animated.spring(this.rfAnim, { toValue: 1 }).start();
-      Animated.timing(this.menuMove, { toValue: 1, duration: 300 }).start();
+      Animated.spring(this.rfAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }).start();
+      Animated.timing(this.menuMove, { toValue: 1, duration: 250, useNativeDriver: true }).start();
     } else {
-      Animated.spring(this.rfAnim, { toValue: 0, userNativeDriver: true }).start();
-      Animated.spring(this.menuMove, { toValue: 0, userNativeDriver: true }).start();
+      Animated.spring(this.rfAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 11 }).start();
+      Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
     }
     this.setState(prevState => {
       return { removeFriendActive: prevState.removeFriendActive == 0 ? 1 : 0 }
@@ -201,9 +207,15 @@ class App extends Component {
     if(this.state.reportAbuseActive === 1) this.closeMenuAndReportAbuse();
     if(this.state.menuActive === 1) this.openMenu();
     if(this.state.friendListActive === 0) {
-      Animated.spring(this.friendsAnim, {toValue: 1}).start();
+      Animated.parallel([
+        Animated.spring(this.friendsAnim, {toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5 }),
+        Animated.timing(this.body, { toValue: 2, useNativeDriver: true, duration: 200 })
+      ]).start();
     } else {
-      Animated.spring(this.friendsAnim, {toValue: 0}).start();
+      Animated.parallel([
+        Animated.spring(this.friendsAnim, {toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5 }),
+        Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 })
+      ]).start();
     }
     this.setState(prevState => {
       return {
@@ -212,23 +224,23 @@ class App extends Component {
     });
     Keyboard.dismiss();
     if(this.modalAnim._value === 1) {
-      Animated.spring(this.modalAnim, { toValue: 0}).start();
+      Animated.spring(this.modalAnim, { toValue: 0, useNativeDriver: true }).start();
     }
   }
 
   closeMenuAndRemoveFriend = () => {
-    Animated.spring(this.menuAnim, { toValue: 0, userNativeDriver: true }).start();
-    Animated.spring(this.rfAnim, { toValue: 0, userNativeDriver: true }).start();
-    Animated.spring(this.menuMove, { toValue: 0, userNativeDriver: true }).start();
+    Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
+    Animated.spring(this.rfAnim, { toValue: 0, useNativeDriver: true }).start();
+    Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
     this.setState(prevState => {
       return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
     });
   }
 
   closeMenuAndReportAbuse = () => {
-    Animated.spring(this.menuAnim, { toValue: 0, userNativeDriver: true }).start();
-    Animated.spring(this.raAnim, { toValue: 0, userNativeDriver: true }).start();
-    Animated.spring(this.menuMove, { toValue: 0, userNativeDriver: true }).start();
+    Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
+    Animated.spring(this.raAnim, { toValue: 0, useNativeDriver: true }).start();
+    Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
     this.setState(prevState => {
       return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
     });
@@ -238,10 +250,12 @@ class App extends Component {
     if(person !== undefined) {
       this.setState({currentFriendSelection: person});
     }
-    if(this.modalAnim._value === 0) {
-      Animated.spring(this.modalAnim, { toValue: 1}).start();
+    if(this.state.modalActive === 0) {
+      Animated.spring(this.modalAnim, { toValue: 1, useNativeDriver: true }).start();
+      this.setState({ modalActive: 1 });
     } else {
-      Animated.spring(this.modalAnim, { toValue: 0}).start();
+      Animated.spring(this.modalAnim, { toValue: 0, useNativeDriver: true }).start();
+      this.setState({ modalActive: 0});
     }
   }
 
@@ -330,89 +344,110 @@ class App extends Component {
   render = () => {
     return (
       <View style={styles.container}>
-        <StatusBar
-           barStyle="light-content" />
-        <Login 
-          user={this.state.user}
-          width={this.width}
-          height={this.state.height}
-          loggedIn={this.state.loggedIn} />
+        <LinearGradient
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%'
+          }}
+          colors={['#139A8F', '#0F776E']}>
+          <StatusBar
+             barStyle="light-content" />
+          {
+            this.state.rp &&
+            <Login 
+              user={this.state.user}
+              width={this.width}
+              height={this.state.height}
+              loggedIn={this.state.loggedIn} />
+          }
 
-        <Header
-          openMenu={this.openMenu}
-          raActive={this.state.reportAbuseActive}
-          rfActive={this.state.removeFriendActive}
-          menuActive={this.state.menuActive}
-          openFriendList={this.openFriendList} />
-            
-        {
-          this.state.loggedIn &&
-          <Dashboard 
-            height={this.state.height} />
-        }
-        {
-          this.state.loggedIn &&
-          <Menu 
-            height={this.state.height}
-            user={this.state.user}
-            active={this.state.menuActive}
-            menuAnim={this.menuAnim}
-            menuMove={this.menuMove}
-            openRA={this.openReportAbuse}
-            openRF={this.openRemoveFriend}
-            openMenu={this.openMenu}/>
-        }
+          {
+            this.state.rp && 
+            <Header
+              openMenu={this.openMenu}
+              raActive={this.state.reportAbuseActive}
+              rfActive={this.state.removeFriendActive}
+              menuActive={this.state.menuActive}
+              openFriendList={this.openFriendList} />
+          }
+              
+          {
+            this.state.loggedIn &&
+            <Dashboard 
+              height={this.state.height}
+              anim={this.body}
+              width={this.state.width}
+              local={this.state.local}
+              remote={this.state.remote} />
+          }
 
-        {
-          this.state.loggedIn &&
-          <ReportAbuse
-            height={this.state.height}
-            raAnim={this.raAnim}
-            openRA={this.openReportAbuse} />
-        }
+          {
+            this.state.loggedIn &&
+            <Menu 
+              height={this.state.height}
+              user={this.state.user}
+              active={this.state.menuActive}
+              menuAnim={this.menuAnim}
+              menuMove={this.menuMove}
+              openRA={this.openReportAbuse}
+              openRF={this.openRemoveFriend}
+              openMenu={this.openMenu}/>
+          }
 
-        {
-          this.state.loggedIn &&
-          <RemoveFriend
-            height={this.state.height}
-            friends={this.state.friends}
-            rfAnim={this.rfAnim}
-            openRF={this.openRemoveFriend} />
-        }
+          {
+            this.state.loggedIn &&
+            <ReportAbuse
+              height={this.state.height}
+              raAnim={this.raAnim}
+              openRA={this.openReportAbuse} />
+          }
 
-        {
-          this.state.loggedIn &&
-          <FriendList
-            height={this.state.height}
-            friends={this.state.friends}
-            requests={this.state.requests}
-            sentRequests={this.state.sentRequests}
-            users={this.state.users}
-            states={this.props.states}
-            anim={this.friendsAnim}
+          {
+            this.state.loggedIn &&
+            <RemoveFriend
+              height={this.state.height}
+              friends={this.state.friends}
+              rfAnim={this.rfAnim}
+              openRF={this.openRemoveFriend} />
+          }
+
+          {
+            this.state.loggedIn &&
+            <FriendList
+              height={this.state.height}
+              friends={this.state.friends}
+              requests={this.state.requests}
+              sentRequests={this.state.sentRequests}
+              users={this.state.users}
+              states={this.props.states}
+              anim={this.friendsAnim}
+              toggleChatOptions={this.toggleChatOptions}
+              unread={this.state.unread}
+              resortFriends={this.resortFriends} />
+          }
+
+          <Modal 
+            anim={this.modalAnim}
             toggleChatOptions={this.toggleChatOptions}
-            unread={this.state.unread}
-            resortFriends={this.resortFriends} />
-        }
+            openChat={this.openChat} />
 
-        <Modal 
-          anim={this.modalAnim}
-          toggleChatOptions={this.toggleChatOptions}
-          openChat={this.openChat} />
-
-        {
-          this.state.loggedIn &&
-          this.state.openChats.length > 0 &&
-          <Chat 
-            height={this.state.height}
-            name={this.state.openChats[0].name}
-            id={this.state.openChats[0]._id}
-            image={this.state.openChats[0].image}
-            openChats={this.state.openChats}
-            messages={this.props.messages}
-            closeChat={this.closeChat}
-            unread={this.state.unread} />
-        }
+          {
+            this.state.loggedIn &&
+            this.state.openChats.length > 0 &&
+            <Chat 
+              height={this.state.height}
+              name={this.state.openChats[0].name}
+              id={this.state.openChats[0]._id}
+              image={this.state.openChats[0].image}
+              openChats={this.state.openChats}
+              messages={this.props.messages}
+              closeChat={this.closeChat}
+              unread={this.state.unread} />
+          }
+        </LinearGradient>
       </View>
     );
   }

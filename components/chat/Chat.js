@@ -98,7 +98,7 @@ export default class Chat extends PureComponent {
     this.keyboardWillShowSub = Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
     this.keyboardWillHideSub = Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
     setTimeout(() => {
-    	Animated.spring(this.hideChat, {toValue: 0}).start();
+    	Animated.spring(this.hideChat, {toValue: 0 }).start();
     	this.setState({isHidded: false});
     }, 200);
   }
@@ -111,7 +111,6 @@ export default class Chat extends PureComponent {
   componentWillReceiveProps = (nextProps) => {
   	if(nextProps.id !== null && nextProps.id !== undefined && nextProps.messages.length > 0) {
   		this.getMessages(nextProps.messages, nextProps.id);
-  		setTimeout(() => { this.scrollToBottom(false) }, 10);
   	}	
   	if(this.props.openChats.length < nextProps.openChats.length && this.hideChat._value === this.props.height - 110) {
   		this.toggleChat();
@@ -124,7 +123,7 @@ export default class Chat extends PureComponent {
   		const mes = messages[i];
   		if(mes.from._id === id || mes.to._id === id) m.push(mes);
   	}
-  	this.setState({visible: m.length >= 65 ? m.slice(m.length - 65) : m});
+  	this.setState({visible: m.length >= 65 ? m.slice(m.length - 65).reverse() : m.reverse()});
   }
 
   scrollToBottom = (bool=true) => {
@@ -132,27 +131,27 @@ export default class Chat extends PureComponent {
   }
 
   keyboardWillShow = (event) => {
-    Animated.timing(this.chat, { duration: event.duration, toValue: 1, }).start();
+    Animated.timing(this.chat, { duration: event.duration, toValue: 1 }).start();
   }
 
   keyboardWillHide = (event) => {
-    Animated.timing(this.chat, { duration: event.duration, toValue: 0, }).start();
+    Animated.timing(this.chat, { duration: event.duration, toValue: 0 }).start();
   }
 
   closeChat = () => {
   	this.props.closeChat();
   	if(this.props.openChats.length === 0) {
-  		Animated.spring(this.hideChat, {toValue: this.props.height - 60}).start();
+  		Animated.spring(this.hideChat, {toValue: this.props.height - 60 }).start();
     	this.setState({ isHidded: false });
   	}
   }
 
   toggleChat = () => {
   	if(this.hideChat._value > 0) {
-  		Animated.spring(this.hideChat, {toValue: 0}).start();
+  		Animated.spring(this.hideChat, {toValue: 0 }).start();
   		this.setState({isHidden: false});
   	} else {
-  		Animated.spring(this.hideChat, {toValue: this.props.height - 110}).start();
+  		Animated.spring(this.hideChat, {toValue: this.props.height - 110 }).start();
   		this.setState({isHidden: true});
   	}
   	Keyboard.dismiss();
@@ -246,28 +245,28 @@ export default class Chat extends PureComponent {
 				        			inputRange: [0, 1],
 				        			outputRange: [this.props.inCall ? -20 : 0, this.props.inCall ? -80 : -60]
 				        		})
-				        	},
-				        	{ scaleY: -1 }
+				        	}
 				        ]
 							}}>
     					<FlatList
+    						inverted
     						ref={(r) => { this.flatList = r; }}
 	    					style={{
 									flex: 1,
 									height: '100%',
 									width: '100%',
-									backgroundColor: '#fff'
+									backgroundColor: '#fff',
+									transform: [{ scaleY: -1 }]
 								}}
 								onScroll={this.checkUnread}
 								scrollEventThrottle={1000}
-	    					data={this.state.visible.reverse()}
+	    					data={this.state.visible}
 	    					keyboardDismissMode="on-drag"
 	    					keyboardShouldPersistTaps="never"
 	    					renderItem={({item, index}) => 
 	    						<ChatBubble 
 							  		text={item.text}
 							  		from={item.from._id}
-							  		scrollToBottom={this.scrollToBottom}
 							  		index={index}
 							  		length={this.state.visible.length} />
 						 			}

@@ -94,14 +94,17 @@ export default class Login extends Component {
     Animated.timing(this.fontSize, {
       duration: event.duration,
       toValue: 1,
+      useNativeDriver: true
     }).start();
     Animated.timing(this.hatPosY, {
       duration: event.duration,
       toValue: 0.3,
+      useNativeDriver: true
     }).start();
     Animated.timing(this.hatScale, {
       duration: event.duration,
       toValue: 0,
+      useNativeDriver: true
     }).start();
   }
 
@@ -109,29 +112,32 @@ export default class Login extends Component {
     Animated.timing(this.fontSize, {
       duration: event.duration,
       toValue: 0,
+      useNativeDriver: true
     }).start();
     Animated.timing(this.hatPosY, {
       duration: event.duration,
       toValue: 0,
+      useNativeDriver: true
     }).start();
     Animated.timing(this.hatScale, {
       duration: event.duration,
       toValue: 0.5,
+      useNativeDriver: true
     }).start();
   }
 
   showLogin = () => {
      Animated.sequence([
-      Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, userNativeDriver: true }),
-      Animated.timing(this.loginAnim, { toValue: 0, duration: 350, userNativeDriver: true }),
-      Animated.timing(this.entrance, { toValue: 1, duration: 500, userNativeDriver: true})
+      Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, useNativeDriver: true }),
+      Animated.timing(this.loginAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
+      Animated.timing(this.entrance, { toValue: 1, duration: 500 })
     ]).start();
   }
 
   hideLogin = () => {
     Animated.sequence([
-      Animated.timing(this.loginAnim, { toValue: 1, duration: 350, userNativeDriver: true }),
-      Animated.timing(this.collapse, { toValue: 1, duration: 0, userNativeDriver: true })
+      Animated.timing(this.loginAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      Animated.timing(this.collapse, { toValue: 1, duration: 0, useNativeDriver: true })
     ]).start();
   }
 
@@ -146,6 +152,30 @@ export default class Login extends Component {
         Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
         Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
       ]),
+      // Animated.parallel([
+      //   Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
+      //   Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
+      // ]),
+      // Animated.parallel([
+      //   Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
+      //   Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
+      // ]),
+      // Animated.parallel([
+      //   Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
+      //   Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
+      // ]),
+      // Animated.parallel([
+      //   Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
+      //   Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
+      // ]),
+      // Animated.parallel([
+      //   Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
+      //   Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
+      // ]),
+      // Animated.parallel([
+      //   Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
+      //   Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
+      // ]),
       Animated.parallel([
         Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
         Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
@@ -156,7 +186,7 @@ export default class Login extends Component {
         Animated.spring(this.hatRotate, {toValue: 0, useNativeDrive: true }),
         Animated.spring(this.hatPosY, {toValue: 0, useNativeDrive: true }),
         Animated.spring(this.inputPosX, {toValue: 1, useNativeDrive: true }),
-        Animated.spring(this.buttonPosX, {toValue: 1, useNativeDrive: true }),
+        Animated.spring(this.buttonPosX, {toValue: 1 }),
         Animated.spring(this.toggleOptionPosX, {toValue: 1, useNativeDrive: true }),
       ]),
     ]).start();
@@ -279,23 +309,23 @@ export default class Login extends Component {
   }
 
   makeCircle = () => {
-    Animated.timing(this.buttonAnim, { toValue: 38, duration: 300, userNativeDriver: true }).start();
-    Animated.timing(this.borderRadius, { toValue: 38/2, duration: 300, userNativeDriver: true }).start();
-    Animated.timing(this.opacity, { toValue: 0, duration: 150, userNativeDriver: true }).start();
-    Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150, userNativeDriver: true }).start();
+    Animated.timing(this.buttonAnim, { toValue: 38, duration: 300 }).start();
+    Animated.timing(this.borderRadius, { toValue: 38/2, duration: 300 }).start();
+    Animated.timing(this.opacity, { toValue: 0, duration: 150  }).start();
+    Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150 }).start();
   }
 
   unmakeCircle = () => {
-    Animated.timing(this.buttonAnim, { toValue: 300, duration: 300, userNativeDriver: true }).start();
-    Animated.timing(this.borderRadius, { toValue: 2, duration: 300, userNativeDriver: true }).start();
-    Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300, userNativeDriver: true }).start();
-    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, userNativeDriver: true }).start();
-    Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0, userNativeDriver: true }).start();
+    Animated.timing(this.buttonAnim, { toValue: 300, duration: 300 }).start();
+    Animated.timing(this.borderRadius, { toValue: 2, duration: 300 }).start();
+    Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300 }).start();
+    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }).start();
+    Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0 }).start();
   }
 
   makeCheck = () => {
-    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, userNativeDriver: true }).start();
-    Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150, userNativeDriver: true }).start();
+    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }).start();
+    Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150 }).start();
   }
 
   render = () => {

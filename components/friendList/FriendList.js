@@ -65,9 +65,9 @@ export default class FriendList extends Component {
   }
 
   selectTab = (e, tab) => {
-  	if(tab === 'friends') Animated.spring(this.slider, { toValue: 1}).start();
-  	if(tab === 'requests') Animated.spring(this.slider, { toValue: 0}).start();
-  	if(tab === 'users') Animated.spring(this.slider, { toValue: -1}).start();
+  	if(tab === 'friends') Animated.spring(this.slider, { toValue: 1, useNativeDriver: true}).start();
+  	if(tab === 'requests') Animated.spring(this.slider, { toValue: 0, useNativeDriver: true}).start();
+  	if(tab === 'users') Animated.spring(this.slider, { toValue: -1, useNativeDriver: true}).start();
   	this.setState({text: ''});
   	this.curList = null;
   	Keyboard.dismiss();
@@ -129,7 +129,7 @@ export default class FriendList extends Component {
 					shadowColor: '#000',
 			    shadowOffset:{ width: 5,  height: 0 },
 			    shadowColor: 'black',
-			    shadowOpacity: 0.6,
+			    shadowOpacity: 0.3,
 			    zIndex: 98,
 			    transform: 
 			      [

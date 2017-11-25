@@ -25,7 +25,6 @@ export default class ChatBubble extends PureComponent {
 	        shadowColor: 'black',
 	        shadowOpacity: 0.15,
 	        minHeight: 10,
-          transform: [{ scaleY: -1 }]
     		}}>
     		<Text
     			style={{

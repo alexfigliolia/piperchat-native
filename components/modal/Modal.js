@@ -21,7 +21,7 @@ export default class Modal extends Component {
     			bottom: 10,
     			left: '2.5%',
     			backgroundColor: '#fff',
-    			borderRadius: 5,
+    			borderRadius: 10,
     			zIndex: 1234,
     			justifyContent: 'center',
     			alignItems: 'center',

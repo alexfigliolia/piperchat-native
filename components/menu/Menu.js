@@ -37,7 +37,7 @@ export default class Menu extends Component {
 				shadowColor: '#000',
 		    shadowOffset:{ width: -5,  height: 0 },
 		    shadowColor: 'black',
-		    shadowOpacity: 0.6,
+		    shadowOpacity: 0.3,
 		    zIndex: 99,
 		    transform: 
 		      [
