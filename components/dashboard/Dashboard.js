@@ -1,8 +1,58 @@
 import React, { Component, PropTypes } from 'react';
 import { Animated, View } from 'react-native';
+import {
+  MediaStream,
+  MediaStreamTrack,
+  getUserMedia
+} from 'react-native-webrtc';
 import You from './You';
+import Me from './Me';
 
 export default class Dashboard extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      local: null,
+      remote: null
+    }
+  }
+
+  componentDidMount = () => {
+    this.getLocalStream();
+  }
+
+  getLocalStream = () => {
+    MediaStreamTrack
+      .getSources()
+      .then(sourceInfos => {
+        // console.log(sourceInfos);
+        let videoSourceId;
+        for (let i = 0; i < sourceInfos.length; i++) {
+          const sourceInfo = sourceInfos[i];
+          if(sourceInfo.kind == "video" && sourceInfo.facing == (isFront ? "front" : "back")) {
+            videoSourceId = sourceInfo.id;
+          }
+        }
+        return getUserMedia({
+          audio: true,
+          video: {
+            mandatory: {
+              minWidth: this.props.width,
+              minHeight: this.props.height,
+              minFrameRate: 30
+            },
+            facingMode: 'user',
+            optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
+          }
+        });
+      })
+      .then(stream => {
+        console.log(stream);
+        this.setState({ local: stream.toURL(), remote: stream.toURL() });
+      })
+      .catch(err => console.log(err));
+  }
+
   render = () => {
     return (
     	<Animated.View
@@ -23,12 +73,17 @@ export default class Dashboard extends Component {
                 ]
               })
             }
-          ]
+          ],
+          position: 'relative'
     		}}>
         <You
           height={this.props.height}
           width={this.props.width} 
-          stream={this.props.local} />
+          stream={this.state.remote} />
+        <Me
+          height={this.props.height}
+          width={this.props.width} 
+          stream={this.state.local} />
     	</Animated.View>
     );
   }

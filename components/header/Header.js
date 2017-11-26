@@ -20,7 +20,11 @@ export default class Header extends Component {
           zIndex: 500
       	}}>
         <TouchableWithoutFeedback
-          onPress={this.props.openFriendList}>
+          onPress={this.props.openFriendList}
+          style={{
+            height: 47.5,
+            width: 47.5
+          }}>
           <Image
             style={{
               height: 32.5,

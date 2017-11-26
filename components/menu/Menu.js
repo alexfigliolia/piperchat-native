@@ -28,7 +28,7 @@ export default class Menu extends Component {
 		  container: {
 		    backgroundColor: '#E3EBF0',
 				width: "70%",
-				height: this.props.height - 60,
+				height: '100%',
 				position: 'absolute',
 				top: 60,
 				right: 0,

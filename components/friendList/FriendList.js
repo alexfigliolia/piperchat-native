@@ -65,9 +65,9 @@ export default class FriendList extends Component {
   }
 
   selectTab = (e, tab) => {
-  	if(tab === 'friends') Animated.spring(this.slider, { toValue: 1, useNativeDriver: true}).start();
-  	if(tab === 'requests') Animated.spring(this.slider, { toValue: 0, useNativeDriver: true}).start();
-  	if(tab === 'users') Animated.spring(this.slider, { toValue: -1, useNativeDriver: true}).start();
+  	if(tab === 'friends') Animated.spring(this.slider, { toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
+  	if(tab === 'requests') Animated.spring(this.slider, { toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5}).start();
+  	if(tab === 'users') Animated.spring(this.slider, { toValue: -1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
   	this.setState({text: ''});
   	this.curList = null;
   	Keyboard.dismiss();

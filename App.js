@@ -156,15 +156,11 @@ class App extends Component {
     } else {
       this.setState(prevState => {
         if(prevState.menuActive === 0) {
-          Animated.parallel([
-            Animated.spring(this.menuAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 12.5 }),
-            Animated.timing(this.body, { toValue: 0, useNativeDriver: true, duration: 200 })
-          ]).start();
+          Animated.spring(this.menuAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 12.5 }).start();
+          Animated.timing(this.body, { toValue: 0, useNativeDriver: true, duration: 200 }).start();
         } else {
-          Animated.parallel([
-            Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 12.5 }),
-            Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 })
-          ]).start();
+          Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 12.5 }).start();
+          Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 }).start();
         }
         return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
       });
@@ -207,15 +203,11 @@ class App extends Component {
     if(this.state.reportAbuseActive === 1) this.closeMenuAndReportAbuse();
     if(this.state.menuActive === 1) this.openMenu();
     if(this.state.friendListActive === 0) {
-      Animated.parallel([
-        Animated.spring(this.friendsAnim, {toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5 }),
-        Animated.timing(this.body, { toValue: 2, useNativeDriver: true, duration: 200 })
-      ]).start();
+      Animated.spring(this.friendsAnim, {toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
+      Animated.timing(this.body, { toValue: 2, useNativeDriver: true, duration: 200 }).start();
     } else {
-      Animated.parallel([
-        Animated.spring(this.friendsAnim, {toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5 }),
-        Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 })
-      ]).start();
+      Animated.spring(this.friendsAnim, {toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
+      Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 }).start();
     }
     this.setState(prevState => {
       return {
