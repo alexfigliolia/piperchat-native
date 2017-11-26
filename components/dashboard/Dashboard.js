@@ -7,6 +7,7 @@ import {
 } from 'react-native-webrtc';
 import You from './You';
 import Me from './Me';
+import Connecting from './Connecting';
 
 export default class Dashboard extends Component {
   constructor(props) {
@@ -84,6 +85,13 @@ export default class Dashboard extends Component {
           height={this.props.height}
           width={this.props.width} 
           stream={this.state.local} />
+        <Connecting
+          scale={this.props.scale}
+          dim={this.props.dim}
+          with={this.props.with}
+          hangUp={this.props.hangUp}
+          accept={this.props.accept}
+          hideConnecting={this.props.hideConnecting} />
     	</Animated.View>
     );
   }

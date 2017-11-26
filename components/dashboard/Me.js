@@ -90,6 +90,7 @@ export default class Me extends Component {
           shadowRadius: 5,
           justifyContent: 'center',
           alignItems: 'center',
+          zIndex: 10
     		}}
     		{...this.panResponder.panHandlers}>
     		<RTCView

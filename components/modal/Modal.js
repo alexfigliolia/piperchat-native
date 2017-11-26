@@ -39,6 +39,7 @@ export default class Modal extends Component {
 			    ]
     		}}>
     		<TouchableOpacity
+          onPress={this.props.displayConnecting}
     			style={{
     				height: '33.33333%',
     				width: '100%',

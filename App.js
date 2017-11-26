@@ -23,7 +23,15 @@ import StatusBarSizeIOS from 'react-native-status-bar-size';
 import LinearGradient from 'react-native-linear-gradient';
 import update from 'immutability-helper';
 import { alphabetize, checkIndexOf } from './components/helpers';
+// import io from 'socket.io-client';
+
+// const socket = io.connect('https://piper-server.herokuapp.com', {transports: ['websocket']});
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
+const configuration = {"iceServers": [
+  { url: 'stun:stun.l.google.com:19302' },
+  { url: 'stun:stun1.l.google.com:19302' },
+]};
+const pcPeers = {};
 
 class App extends Component {
   constructor(props) {
@@ -58,6 +66,11 @@ class App extends Component {
     this.friendsAnim = new Animated.Value(0);
     this.modalAnim = new Animated.Value(0);
     this.body = new Animated.Value(1);
+    this.scale = new Animated.Value(0);
+    this.dim = new Animated.Value(0);
+    this.with = new Animated.Value(0);
+    this.hangUp = new Animated.Value(0);
+    this.accept = new Animated.Value(0);
   }
 
   componentWillMount = () => {
@@ -81,6 +94,8 @@ class App extends Component {
       }
     });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
+    setTimeout(() => { this.displayConnecting() }, 1000);
+    setTimeout(() => { this.hideConnecting() }, 4000);
   }
 
   componentWillUnmount = () => {
@@ -333,6 +348,26 @@ class App extends Component {
     this.sortFriends(ns, this.props.buddyList[0].friends);
   }
 
+  displayConnecting = () => {
+    Animated.parallel([
+      Animated.timing(this.scale, { toValue: 1, duration: 0, useNativeDriver: true }),
+      Animated.timing(this.dim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.spring(this.with, { toValue: 1, delay: 500, useNativeDriver: true }),
+      Animated.spring(this.hangUp, { toValue: 1, delay: 700, tension: 5, friction: 4.5, useNativeDriver: true }),
+      Animated.spring(this.accept, { toValue: 1, delay: 800, tension: 5, friction: 4.5, useNativeDriver: true })
+    ]).start();
+  }
+
+  hideConnecting = () => {
+    Animated.parallel([
+      Animated.spring(this.accept, { toValue: 0, tension: 5, friction: 4.5, useNativeDriver: true }),
+      Animated.spring(this.hangUp, { toValue: 0, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
+      Animated.spring(this.with, { toValue: 0, delay: 300, useNativeDriver: true }),
+      Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 500, useNativeDriver: true }),
+      Animated.timing(this.scale, { toValue: 0, duration: 0, delay: 800, useNativeDriver: true })
+    ]).start();
+  }
+
   render = () => {
     return (
       <View style={styles.container}>
@@ -373,7 +408,13 @@ class App extends Component {
               anim={this.body}
               width={this.state.width}
               local={this.state.local}
-              remote={this.state.remote} />
+              remote={this.state.remote}
+              scale={this.scale}
+              dim={this.dim}
+              with={this.with}
+              hangUp={this.hangUp}
+              accept={this.accept}
+              hideConnecting={this.hideConnecting} />
           }
 
           {
@@ -424,7 +465,8 @@ class App extends Component {
           <Modal 
             anim={this.modalAnim}
             toggleChatOptions={this.toggleChatOptions}
-            openChat={this.openChat} />
+            openChat={this.openChat}
+            displayConnecting={this.displayConnecting} />
 
           {
             this.state.loggedIn &&
