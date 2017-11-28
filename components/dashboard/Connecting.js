@@ -21,7 +21,7 @@ export default class Connecting extends Component {
   			left: 0,
   			height: '100%',
   			width: '100%',
-  			backgroundColor: 'rgba(0,0,0,0.5)',
+  			backgroundColor: 'rgba(0,0,0,0.75)',
   			justifyContent: 'center',
   			alignItems: 'center',
   			transform: [
@@ -56,7 +56,7 @@ export default class Connecting extends Component {
   			alignItems: 'center',
   			flexDirection: 'row',
   			position: 'absolute',
-  			bottom: '10%',
+  			bottom: '15%',
   			left: 0,
   			width: '100%'
   		},
@@ -93,9 +93,14 @@ export default class Connecting extends Component {
   			]
   		},
   		buttonIcon: {
-  			height: 40,
-  			width: 40
-  		}
+  			height: 35,
+  			width: 35
+  		},
+      buttonIcon2: {
+        height: 40,
+        width: 40,
+        marginBottom: 5
+      }
   	}
   }
 
@@ -119,11 +124,11 @@ export default class Connecting extends Component {
 	    			style={this.styles.buttonsContainer}>
 	    			<Animated.View>
 	    				<TouchableOpacity
-	    					onPress={this.props.hideConnected}
+	    					onPress={this.props.hideConnecting}
 		    				style={this.styles.button1}>
 		    				<Image
-				    			style={this.styles.buttonIcon}
-				    			source={require('../../public/loader.gif')}></Image>
+				    			style={this.styles.buttonIcon2}
+				    			source={require('../../public/hangup.png')}></Image>
 	    				</TouchableOpacity>
 	    			</Animated.View>
 	    			<Animated.View>
@@ -131,7 +136,7 @@ export default class Connecting extends Component {
 		    				style={this.styles.button2}>
 		    				<Image
 				    			style={this.styles.buttonIcon}
-				    			source={require('../../public/loader.gif')}></Image>
+				    			source={require('../../public/call.png')}></Image>
 	    				</TouchableOpacity>
 	    			</Animated.View>
 	    		</View>

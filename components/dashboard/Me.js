@@ -53,6 +53,17 @@ export default class Me extends Component {
     });
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    if(this.props.stream === null && nextProps.stream !== this.props.stream) {
+      Animated.timing(this.state.pan, {
+        toValue: {
+          x: 0, 
+          y: ((this.props.height - 55) - ((this.props.height - 57.5) * 0.3333)) * -1
+        }
+      }).start();
+    }
+  }
+
   getXBound = () => {
     const xMax = (this.props.width - (this.props.width * 0.285714)) * -1;
     const x1 = this.state.pan.x._value > 0 ? 0 : this.state.pan.x._value;

@@ -101,6 +101,7 @@ export default class Chat extends PureComponent {
     	Animated.spring(this.hideChat, {toValue: 0 }).start();
     	this.setState({isHidded: false});
     }, 200);
+    this.getMessages(this.props.messages, this.props.id);
   }
 
   componentWillUnmount = () => {

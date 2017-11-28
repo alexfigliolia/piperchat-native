@@ -24,6 +24,7 @@
     "react-native-linear-gradient": "^2.3.0",
     "react-native-meteor": "^1.2.0",
     "react-native-push-notification": "^3.0.1",
+    "react-native-sound": "^0.10.4",
     "react-native-status-bar-size": "^0.3.2",
     "react-native-webrtc": "^1.58.3"
   }

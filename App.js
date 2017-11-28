@@ -21,8 +21,14 @@ import Meteor, { createContainer } from 'react-native-meteor';
 import PushNotification from 'react-native-push-notification';
 import StatusBarSizeIOS from 'react-native-status-bar-size';
 import LinearGradient from 'react-native-linear-gradient';
+import { default as Sound } from 'react-native-sound';
 import update from 'immutability-helper';
-import { alphabetize, checkIndexOf } from './components/helpers';
+import { 
+  checkSelfFriend, 
+  sortFriendsUnread, 
+  alphabetize, 
+  checkIndexOf 
+} from './components/helpers';
 // import io from 'socket.io-client';
 
 // const socket = io.connect('https://piper-server.herokuapp.com', {transports: ['websocket']});
@@ -71,16 +77,14 @@ class App extends Component {
     this.with = new Animated.Value(0);
     this.hangUp = new Animated.Value(0);
     this.accept = new Animated.Value(0);
+    this.ring = null;
   }
 
-  componentWillMount = () => {
-    Meteor.connect(SERVER_URL); 
-  }
+  componentWillMount = () => Meteor.connect(SERVER_URL);
 
   componentDidMount = () => {
     const {height, width} = Dimensions.get('window');
     this.width = width;
-    // this.height = height;
     this.setState({height, width});
     PushNotification.configure({
       onNotification: (notification) => {
@@ -88,14 +92,18 @@ class App extends Component {
         if(notification.userInteraction) {
           const oc = this.state.openChats;
           const ns = update(oc, {$unshift: [this.props.messages[this.props.messages.length - 1].from]});
-          console.log(ns);
           this.setState({openChats: ns});
         }
       }
     });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
-    setTimeout(() => { this.displayConnecting() }, 1000);
-    setTimeout(() => { this.hideConnecting() }, 4000);
+    this.ring = new Sound('sony_ericsson_tone.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.log('failed to load the sound', error);
+        return;
+      }
+      console.log('duration in seconds: ' + this.ring.getDuration() + 'number of channels: ' + this.ring.getNumberOfChannels());
+    });
   }
 
   componentWillUnmount = () => {
@@ -108,34 +116,37 @@ class App extends Component {
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
     } else {
-      this.letEmIn(nextProps);
       const buddyList = nextProps.buddyList[0];
+      const friends = alphabetize(buddyList.friends);
+      this.letEmIn(nextProps, friends);
       const unread = nextProps.user.newMessages;
       if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
-        this.sortFriendsUnread(unread, alphabetize(buddyList.friends));
+        sortFriendsUnread(unread, alphabetize(buddyList.friends))
+          .then(ns => this.setState({friends: ns}))
+          .catch(err => console.log(err));
       }
     }
-    if(nextProps.messages.length > 0) {
-      this.checkMessages(nextProps.messages);
-    }
+    if(nextProps.messages.length > 0) this.checkMessages(nextProps.messages);
   }
 
   getAuth = () => {
     this.setState({ loggedIn: false, friends: [], user: null, search: [], sentRequests: [], requests: [], unread: [], openChats: [], currentFriendSelection: {} });
   }
 
-  letEmIn = (path) => {
+  letEmIn = (path, friends) => {
     this.setState({
       loggedIn: true,
       user: path.user,
-      friends: path.buddyList.length > 0 ? alphabetize(path.buddyList[0].friends) : [],
-      search: path.buddyList.length > 0 ? alphabetize(path.buddyList[0].friends) : [],
+      friends: path.buddyList.length > 0 ? friends : [],
+      search: path.buddyList.length > 0 ? friends : [],
       sentRequests: path.buddyList.length > 0 ? path.buddyList[0].sentRequests : [],
       requests: path.buddyList.length > 0 ? path.buddyList[0].requests : [],
       unread: path.user.newMessages !== undefined ? path.user.newMessages : []
     });
     if(path.buddyList.length > 0) {
-      this.checkSelfFriend(path);
+      checkSelfFriend(path)
+        .then( users => this.setState({users}) )
+        .catch( err => console.log(err) );
     }
   }
 
@@ -266,28 +277,6 @@ class App extends Component {
     }
   }
 
-  checkSelfFriend = (path) => {
-    if(path.users.length > 0) {
-      const users = path.users;
-      const friends = path.buddyList[0].friends;
-      const requests = path.buddyList[0].requests;
-      const sent = path.buddyList[0].sentRequests;
-      const arr = friends.concat(requests, sent);
-      const unique = [];
-      for(let i = 0; i<users.length; i++) {
-        let isUnique = true;
-        for(let j = 0; j<arr.length; j++) {
-          if(users[i]._id === arr[j]._id || users[i]._id === Meteor.userId()) {
-            isUnique = false;
-            break;
-          }
-        }
-        if(isUnique) unique.push(users[i]);
-      }
-      this.setState({users: unique});
-    }
-  }
-
   openChat = () => {
     const chats = this.state.openChats;
     const cf = this.state.currentFriendSelection;
@@ -299,53 +288,23 @@ class App extends Component {
     } else {
       ns = update(chats, {$unshift: [cf]});
     }
-    this.setState({openChats: ns}, () => {
-      this.toggleChatOptions();
-      this.openFriendList();
-      if(this.state.unread.indexOf(cf._id) !== -1) {
-        Meteor.call('user.removeNew', cf._id, (err, res) => {
-          if(err) console.log(err);
-        });
-      }
-    });
+    this.toggleChatOptions();
+    setTimeout(() => { this.openFriendList() }, 300);
+    setTimeout(() => {
+      this.setState({ openChats: ns }, () => {
+        if(this.state.unread.indexOf(cf._id) !== -1) {
+          Meteor.call('user.removeNew', cf._id, (err, res) => {
+            if(err) console.log(err);
+          });
+        }
+      });
+    }, 500)
   }
 
   closeChat = () => {
     const chats = this.state.openChats;
     const u = update(chats, {$splice: [[0, 1]]});
     this.setState({openChats: u});
-  }
-
-  sortFriendsUnread = (unread, friends) => {
-    for(let i = 0; i<friends.length; i++) {
-      for(let j = 0; j<unread.length; j++) {
-        if(friends[i]._id === unread[j]) {
-          const r = update(friends, {$splice: [[i, 1]]});
-          const ns = update(r, {$unshift: [friends[i]]});
-          this.setState({friends: ns});
-        }
-      }
-    }
-  }
-
-  sortFriendsOpenChat = () => {
-    for(let i = 0; i<this.state.friends.length; i++) {
-      for(let k = 0; k<this.state.openChats.length; k++) {
-        if(friends[i]._id === this.state.openChats[k]._id) {
-          const r = update(friends, {$splice: [[i, 1]]});
-          const ns = update(r, {$unshift: [friends[i]]});
-          this.setState({friends: ns});
-        }
-      }
-    }
-  }
-
-  updateUnread(){
-    const ns = this.state.unread.filter(str => {
-      return str !== this.state.currentFriendSelection._id;
-    });
-    this.setState({unread: ns});
-    this.sortFriends(ns, this.props.buddyList[0].friends);
   }
 
   displayConnecting = () => {
@@ -366,6 +325,27 @@ class App extends Component {
       Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 500, useNativeDriver: true }),
       Animated.timing(this.scale, { toValue: 0, duration: 0, delay: 800, useNativeDriver: true })
     ]).start();
+    this.ring.stop();
+  }
+
+  openCall = () => {
+    this.toggleChatOptions();
+    setTimeout(() => { this.openFriendList() }, 300);
+    setTimeout(() => { 
+      this.displayConnecting();
+      this.playRing();
+    }, 500);
+  }
+
+  playRing = () => {
+    this.ring.play((success) => {
+      if (success) {
+        console.log('successfully finished playing');
+      } else {
+        console.log('playback failed due to audio decoding errors');
+        this.ring.reset();
+      }
+    });
   }
 
   render = () => {
@@ -458,15 +438,14 @@ class App extends Component {
               states={this.props.states}
               anim={this.friendsAnim}
               toggleChatOptions={this.toggleChatOptions}
-              unread={this.state.unread}
-              resortFriends={this.resortFriends} />
+              unread={this.state.unread} />
           }
 
           <Modal 
             anim={this.modalAnim}
             toggleChatOptions={this.toggleChatOptions}
             openChat={this.openChat}
-            displayConnecting={this.displayConnecting} />
+            openCall={this.openCall} />
 
           {
             this.state.loggedIn &&
