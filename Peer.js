@@ -143,12 +143,6 @@ const Peer = {
 
   onAddStream: (e, bool=false) => {
   	console.log('setting remote stream');
-  // 	if ("srcObject" in Peer.you) {
-		// 	Peer.you.srcObject = e.stream;
-		// } else {
-		// 	Peer.you.src = window.URL.createObjectURL(e.stream);
-		// }
-  //   Peer.you.muted = bool;
   }
 
 }

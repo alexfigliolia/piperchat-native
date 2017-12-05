@@ -10,6 +10,15 @@ import {
   ActivityIndicator,
   AppState
 } from 'react-native';
+import { 
+  checkSelfFriend, 
+  sortFriendsUnread, 
+  alphabetize, 
+  checkIndexOf,
+  loadSound,
+  sendNotification
+} from './components/helpers';
+import { MediaStream, MediaStreamTrack, getUserMedia } from 'react-native-webrtc';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
 import Dashboard from './components/dashboard/Dashboard';
@@ -25,19 +34,6 @@ import StatusBarSizeIOS from 'react-native-status-bar-size';
 import LinearGradient from 'react-native-linear-gradient';
 import Sound from 'react-native-sound';
 import update from 'immutability-helper';
-import { 
-  checkSelfFriend, 
-  sortFriendsUnread, 
-  alphabetize, 
-  checkIndexOf,
-  loadSound,
-  sendNotification
-} from './components/helpers';
-import {
-  MediaStream,
-  MediaStreamTrack,
-  getUserMedia
-} from 'react-native-webrtc';
 import Peer from './Peer';
 
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
@@ -347,10 +343,10 @@ export default class App extends Component {
   }
 
   setUpCall = (res) => {
-    this.openFriendList();
     this.displayConnecting();
     this.playRing();
     Peer.startCall(res);
+    this.setState({initializingCall: true});
   }
 
   playRing = () => {
@@ -429,17 +425,20 @@ export default class App extends Component {
     this.ring.pause();
     Peer.accepted = true;
     this.socket.emit('accepted', { to: Peer.sendAnswerTo, from: Meteor.userId()});
-    this.setState({ callingClasses: "calling calling-show received" });
+    this.setState({ initializingCall: true });
   }
 
   endCall = (e) => {
     this.ring.pause();
-    this.setState({ callingClasses: "calling" });
-    this.onInitConnect(this.stream);
+    this.setState({ remote: this.stream.toURL() });
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
-    document.getElementById('you').muted = true;
+    this.hideConnecting();
+  }
+
+  handleNewStream = (stream) => {
+    this.setState({ remote: stream.toURL() });
   }
 
   render = () => {
