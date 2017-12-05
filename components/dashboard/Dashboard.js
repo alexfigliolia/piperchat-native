@@ -1,10 +1,5 @@
 import React, { Component, PropTypes } from 'react';
 import { Animated, View } from 'react-native';
-import {
-  MediaStream,
-  MediaStreamTrack,
-  getUserMedia
-} from 'react-native-webrtc';
 import You from './You';
 import Me from './Me';
 import Connecting from './Connecting';
@@ -19,39 +14,8 @@ export default class Dashboard extends Component {
   }
 
   componentDidMount = () => {
-    this.getLocalStream();
-  }
-
-  getLocalStream = () => {
-    MediaStreamTrack
-      .getSources()
-      .then(sourceInfos => {
-        // console.log(sourceInfos);
-        let videoSourceId;
-        for (let i = 0; i < sourceInfos.length; i++) {
-          const sourceInfo = sourceInfos[i];
-          if(sourceInfo.kind == "video" && sourceInfo.facing == (isFront ? "front" : "back")) {
-            videoSourceId = sourceInfo.id;
-          }
-        }
-        return getUserMedia({
-          audio: true,
-          video: {
-            mandatory: {
-              minWidth: this.props.width,
-              minHeight: this.props.height,
-              minFrameRate: 30
-            },
-            facingMode: 'user',
-            optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
-          }
-        });
-      })
-      .then(stream => {
-        console.log(stream);
-        this.setState({ local: stream.toURL(), remote: stream.toURL() });
-      })
-      .catch(err => console.log(err));
+    this.props.getLocalStream();
+    this.props.initPeer();
   }
 
   render = () => {
@@ -80,18 +44,21 @@ export default class Dashboard extends Component {
         <You
           height={this.props.height}
           width={this.props.width} 
-          stream={this.state.remote} />
+          stream={this.props.remote} />
         <Me
           height={this.props.height}
           width={this.props.width} 
-          stream={this.state.local} />
+          stream={this.props.local} />
         <Connecting
           scale={this.props.scale}
           dim={this.props.dim}
           with={this.props.with}
           hangUp={this.props.hangUp}
           accept={this.props.accept}
-          hideConnecting={this.props.hideConnecting} />
+          hideConnecting={this.props.hideConnecting}
+          initializingCall={this.props.initializingCall}
+          currentFriend={this.props.currentFriend}
+          acceptCall={this.props.acceptCall} />
     	</Animated.View>
     );
   }

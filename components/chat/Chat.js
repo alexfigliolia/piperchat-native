@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import ChatBubble from './ChatBubble';
 import Meteor from 'react-native-meteor';
+import { getMessages } from '../helpers';
 
 export default class Chat extends PureComponent {
   constructor(props) {
@@ -101,7 +102,8 @@ export default class Chat extends PureComponent {
     	Animated.spring(this.hideChat, {toValue: 0 }).start();
     	this.setState({isHidded: false});
     }, 200);
-    this.getMessages(this.props.messages, this.props.id);
+    getMessages(this.props.messages, this.props.id)
+    	.then(m => this.setVisibleMessages(m));
   }
 
   componentWillUnmount = () => {
@@ -111,20 +113,20 @@ export default class Chat extends PureComponent {
 
   componentWillReceiveProps = (nextProps) => {
   	if(nextProps.id !== null && nextProps.id !== undefined && nextProps.messages.length > 0) {
-  		this.getMessages(nextProps.messages, nextProps.id);
+  		getMessages(nextProps.messages, nextProps.id)	
+  			.then(m => this.setVisibleMessages(m));
   	}	
   	if(this.props.openChats.length < nextProps.openChats.length && this.hideChat._value === this.props.height - 110) {
   		this.toggleChat();
   	}
+  	if(nextProps.connectingActive) {
+  		Animated.spring(this.hideChat, {toValue: this.props.height - 110 }).start();
+  		this.setState({ isHidden: true });	
+  	}
   }
 
-  getMessages = (messages, id) => {
-  	const m = [];
-  	for(let i = 0; i<messages.length; i++) {
-  		const mes = messages[i];
-  		if(mes.from._id === id || mes.to._id === id) m.push(mes);
-  	}
-  	this.setState({visible: m.length >= 65 ? m.slice(m.length - 65).reverse() : m.reverse()});
+  setVisibleMessages = (messages) => {
+  	this.setState({ visible: messages });
   }
 
   scrollToBottom = (bool=true) => {
@@ -148,7 +150,7 @@ export default class Chat extends PureComponent {
   }
 
   toggleChat = () => {
-  	if(this.hideChat._value > 0) {
+  	if(this.state.isHidden) {
   		Animated.spring(this.hideChat, {toValue: 0 }).start();
   		this.setState({isHidden: false});
   	} else {

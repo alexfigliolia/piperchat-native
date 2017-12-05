@@ -1,5 +1,7 @@
 import Meteor from 'react-native-meteor';
 import update from 'immutability-helper';
+import { default as Sound } from 'react-native-sound';
+import PushNotification from 'react-native-push-notification';
 
 const checkSelfFriend = async (path) =>{
   if(path.users.length > 0) {
@@ -35,7 +37,16 @@ const sortFriendsUnread = async (unread, friends) => {
   }
 }
 
-function alphabetize(arr){
+const getMessages = async (messages, id) => {
+  const m = [];
+  for(let i = 0; i<messages.length; i++) {
+    const mes = messages[i];
+    if(mes.from._id === id || mes.to._id === id) m.push(mes);
+  }
+  return m.length >= 65 ? m.slice(m.length - 65).reverse() : m.reverse();
+}
+
+function alphabetize(arr=[]){
 	return arr.sort((a, b) => {
     if(a.name < b.name) return -1;
     if(a.name > b.name) return 1;
@@ -56,4 +67,30 @@ function checkIndexOf(arr, obj){
   return {bool: exists, pos: index };
 }
 
-export { checkSelfFriend, sortFriendsUnread, alphabetize, checkIndexOf }
+const loadSound = () => {
+  const sound = new Sound('sony_ericsson_tone.mp3', Sound.MAIN_BUNDLE, (error) => {
+    if (error) {
+      console.log('failed to load the sound', error);
+      return;
+    }
+    console.log('duration in seconds: ' + sound.getDuration() + 'number of channels: ' + sound.getNumberOfChannels());
+  });
+  return sound;
+}
+
+const sendNotification = async (message) => {
+  PushNotification.localNotificationSchedule({
+    message: `New message from ${message.from.name}`,
+    date: new Date()
+  });
+}
+
+export { 
+  checkSelfFriend,
+  sortFriendsUnread, 
+  getMessages, 
+  alphabetize, 
+  checkIndexOf,
+  loadSound,
+  sendNotification 
+}

@@ -7,8 +7,7 @@ import {
   TouchableWithoutFeedback,
   StyleSheet,
   Keyboard, 
-  KeyboardAvoidingView,
-  ActivityIndicator
+  KeyboardAvoidingView
 } from 'react-native';
 import LoginInput from './LoginInput';
 import SubmitButton from './SubmitButton';
@@ -21,8 +20,7 @@ export default class Login extends Component {
   	super(props);
     this.state = {
       newUser: false,
-      error: "",
-      isLoading: true,
+      error: ""
     }
     this.loginAnim = new Animated.Value(0);
     this.buttonAnim = new Animated.Value(300);
@@ -71,9 +69,7 @@ export default class Login extends Component {
     this.keyboardWillShowSub = Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
     this.keyboardWillHideSub = Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
     if(this.props.user === null) {
-      setTimeout(() => {
-        this.animateEntrance();
-      }, 200);
+      setTimeout(() => { this.animateEntrance() }, 200);
     }
   }
 
@@ -83,11 +79,11 @@ export default class Login extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    if(!this.state.isLoading) this.setState({isLoading: false});
     if(nextProps.user !== null && nextProps.user !== undefined) {
       setTimeout(() => { this.hideLogin() }, 1000);
-    } else {
-      this.showLogin();
     }
+    if(nextProps.user === null || nextProps.user === undefined) this.showLogin();
   }
 
   keyboardWillShow = (event) => {
@@ -152,30 +148,6 @@ export default class Login extends Component {
         Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
         Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
       ]),
-      // Animated.parallel([
-      //   Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
-      //   Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
-      // ]),
-      // Animated.parallel([
-      //   Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
-      //   Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
-      // ]),
-      // Animated.parallel([
-      //   Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
-      //   Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
-      // ]),
-      // Animated.parallel([
-      //   Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
-      //   Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
-      // ]),
-      // Animated.parallel([
-      //   Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
-      //   Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
-      // ]),
-      // Animated.parallel([
-      //   Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDrive: true }),
-      //   Animated.spring(this.hatRotate, {toValue: 0, tension: 60, useNativeDrive: true }),
-      // ]),
       Animated.parallel([
         Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDrive: true }),
         Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDrive: true }),
@@ -361,25 +333,6 @@ export default class Login extends Component {
       		<LinearGradient
       			style={this.styles.container2}
       			colors={['#139A8F', '#0F776E']}>
- {/*           {
-              this.state.isLoading &&
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  height: '100%',
-                  width: '100%',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}>
-                <ActivityIndicator 
-                  syle={{ flex: 1 }} 
-                  spinning={true} 
-                  color="#fff" 
-                  size="large" />
-              </View>
-            }*/}
             <KeyboardAvoidingView
               behavior="padding"
               style={this.styles.uiWrapper}>
@@ -387,18 +340,7 @@ export default class Login extends Component {
                 style={{
                   width: '100%',
                   justifyContent: 'center',
-                  alignItems: 'center',
-                  // opacity: this.entrance.interpolate({
-                  //   inputRange: [0,1],
-                  //   outputRange: [0,1]
-                  // }),
-                  // transform: [
-                  //   { translateX: this.entrance.interpolate({
-                  //       inputRange: [0,1],
-                  //       outputRange: [this.props.width/2, 0]
-                  //     })
-                  //   }
-                  // ]
+                  alignItems: 'center'
                 }}>
                 <Animated.Image 
                   style={{
@@ -418,7 +360,7 @@ export default class Login extends Component {
                       },
                       {translateY: this.hatPosY.interpolate({
                           inputRange: [0, 1],
-                          outputRange: [0, 100]
+                          outputRange: [0, 120]
                         })
                       },
                       {translateX: this.hatPosX.interpolate({

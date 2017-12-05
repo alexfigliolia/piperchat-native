@@ -9,6 +9,29 @@ import {
 export default class Modal extends Component {
   constructor(props) {
   	super(props);
+    this.state = {
+      online: false
+    }
+  }
+
+  checkOnline = (id) => {
+    if(this.props.states !== undefined && this.props.states.length !== 0) {
+      let online = false;
+      for(let i = 0; i<this.props.states.length; i++) {
+        if(this.props.states[i].userId === id) {
+          online = true;
+          break;
+        }
+      }
+      this.setState({online});
+    }
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    if(nextProps.states !== this.props.states ||
+       nextProps.currentFriend._id !== this.props.currentFriend._id) {
+      this.checkOnline(nextProps.currentFriend._id);
+    }
   }
 
   render = () => {
@@ -38,20 +61,42 @@ export default class Modal extends Component {
 			    	}
 			    ]
     		}}>
-    		<TouchableOpacity
-          onPress={this.props.openCall}
-    			style={{
-    				height: '33.33333%',
-    				width: '100%',
-    				justifyContent: 'center',
-    				alignItems: 'center'
-    			}}>
-    			<Text 
-    				style={{
-    					fontSize: 18,
-    					color: '#51BFAF'
-    				}}>Video Chat</Text>
-    		</TouchableOpacity>
+    		{
+          this.state.online ?
+          <TouchableOpacity
+            onPress={this.props.openCall}
+            style={{
+              height: '33.33333%',
+              width: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: 1
+            }}>
+            <Text 
+              style={{
+                fontSize: 18,
+                color: '#51BFAF'
+              }}>Video Chat</Text>
+          </TouchableOpacity>
+          :
+          <View
+            style={{
+              height: '33.33333%',
+              width: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: 0.35,
+            }}>
+            <Text
+              style={{
+                textAlign: 'center',
+                color: '#51BFAF',
+                fontSize: 18,
+              }}>
+              Video Chat
+            </Text>
+          </View>
+        }
     		<TouchableOpacity
     			onPress={this.props.openChat}
     			style={{

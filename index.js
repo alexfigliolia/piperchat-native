@@ -1,3 +1,3 @@
 import { AppRegistry } from 'react-native';
-import App from './App';
-AppRegistry.registerComponent('piperchat', () => App);
+import AppContainer from './Container';
+AppRegistry.registerComponent('piperchat', () => AppContainer);

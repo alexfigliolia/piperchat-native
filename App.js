@@ -6,7 +6,9 @@ import {
   StatusBar, 
   Animated,
   Dimensions,
-  Keyboard
+  Keyboard,
+  ActivityIndicator,
+  AppState
 } from 'react-native';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
@@ -17,29 +19,30 @@ import ReportAbuse from './components/reportAbuse/ReportAbuse';
 import RemoveFriend from './components/removeFriend/RemoveFriend';
 import Modal from './components/modal/Modal';
 import Chat from './components/chat/Chat';
-import Meteor, { createContainer } from 'react-native-meteor';
+import Meteor from 'react-native-meteor';
 import PushNotification from 'react-native-push-notification';
 import StatusBarSizeIOS from 'react-native-status-bar-size';
 import LinearGradient from 'react-native-linear-gradient';
-import { default as Sound } from 'react-native-sound';
+import Sound from 'react-native-sound';
 import update from 'immutability-helper';
 import { 
   checkSelfFriend, 
   sortFriendsUnread, 
   alphabetize, 
-  checkIndexOf 
+  checkIndexOf,
+  loadSound,
+  sendNotification
 } from './components/helpers';
-// import io from 'socket.io-client';
+import {
+  MediaStream,
+  MediaStreamTrack,
+  getUserMedia
+} from 'react-native-webrtc';
+import Peer from './Peer';
 
-// const socket = io.connect('https://piper-server.herokuapp.com', {transports: ['websocket']});
 const SERVER_URL = 'ws://piper-rtc.herokuapp.com/websocket';
-const configuration = {"iceServers": [
-  { url: 'stun:stun.l.google.com:19302' },
-  { url: 'stun:stun1.l.google.com:19302' },
-]};
-const pcPeers = {};
 
-class App extends Component {
+export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -54,6 +57,8 @@ class App extends Component {
       removeFriendActive: 0,
       friendListActive: 0,
       modalActive: 0,
+      connectingActive: false,
+      initializingCall: false,
       friends: [],
       sentRequests: [],
       requests: [],
@@ -78,6 +83,7 @@ class App extends Component {
     this.hangUp = new Animated.Value(0);
     this.accept = new Animated.Value(0);
     this.ring = null;
+    this.appState = null;
   }
 
   componentWillMount = () => Meteor.connect(SERVER_URL);
@@ -85,39 +91,28 @@ class App extends Component {
   componentDidMount = () => {
     const {height, width} = Dimensions.get('window');
     this.width = width;
-    this.setState({height, width});
+    this.setState({ height, width });
     PushNotification.configure({
-      onNotification: (notification) => {
-        console.log('noty: ', notification);
-        if(notification.userInteraction) {
-          const oc = this.state.openChats;
-          const ns = update(oc, {$unshift: [this.props.messages[this.props.messages.length - 1].from]});
-          this.setState({openChats: ns});
-        }
-      }
+      onNotification: (notification) => {}
     });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
-    this.ring = new Sound('sony_ericsson_tone.mp3', Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.log('failed to load the sound', error);
-        return;
-      }
-      console.log('duration in seconds: ' + this.ring.getDuration() + 'number of channels: ' + this.ring.getNumberOfChannels());
-    });
+    this.ring = loadSound();
+    AppState.addEventListener('change', this.handleStateChange);
   }
 
   componentWillUnmount = () => {
     StatusBarSizeIOS.removeEventListener('willChange', this.adjustHeight);
+    AppState.removeEventListener('change', this.handleStateChange);
   }
 
   componentWillReceiveProps = (nextProps) => {
-    if(!this.state.rp) this.setState({rp: true});
     console.log(nextProps);
+    if(!this.state.rp) this.setState({rp: true});
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
     } else {
       const buddyList = nextProps.buddyList[0];
-      const friends = alphabetize(buddyList.friends);
+      const friends = alphabetize(buddyList === undefined ? [] : buddyList.friends);
       this.letEmIn(nextProps, friends);
       const unread = nextProps.user.newMessages;
       if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
@@ -134,32 +129,36 @@ class App extends Component {
   }
 
   letEmIn = (path, friends) => {
+    const buds = path.buddyList;
+    const fands = buds.length > 0 ? friends : [];
+    const newM = path.user.newMessages;
     this.setState({
       loggedIn: true,
       user: path.user,
-      friends: path.buddyList.length > 0 ? friends : [],
-      search: path.buddyList.length > 0 ? friends : [],
-      sentRequests: path.buddyList.length > 0 ? path.buddyList[0].sentRequests : [],
-      requests: path.buddyList.length > 0 ? path.buddyList[0].requests : [],
-      unread: path.user.newMessages !== undefined ? path.user.newMessages : []
+      friends: fands,
+      search: fands,
+      sentRequests: buds.length > 0 ? buds[0].sentRequests : [],
+      requests: buds.length > 0 ? buds[0].requests : [],
+      unread: newM !== undefined ? newM : []
     });
-    if(path.buddyList.length > 0) {
+    if(buds.length > 0) {
       checkSelfFriend(path)
         .then( users => this.setState({users}) )
         .catch( err => console.log(err) );
     }
   }
 
-  checkMessages = (messageList) => {
-    const last = messageList[messageList.length - 1];
-    if(last.to._id === Meteor.userId()) this.sendNotification(last);
+  handleStateChange = (nextState) => {
+    if(this.appState === 'inactive' && nextState === 'active') {
+      this.getLocalStream();
+      this.initPeer();
+    }
+    this.appState = nextState;
   }
 
-  sendNotification = (message) => {
-    PushNotification.localNotificationSchedule({
-      message: `New message from ${message.from.name}`,
-      date: new Date()
-    });
+  checkMessages = (messageList) => {
+    const last = messageList[messageList.length - 1];
+    if(last.to._id === Meteor.userId()) sendNotification(last);
   }
 
   adjustHeight = (nSBH) => {
@@ -315,6 +314,7 @@ class App extends Component {
       Animated.spring(this.hangUp, { toValue: 1, delay: 700, tension: 5, friction: 4.5, useNativeDriver: true }),
       Animated.spring(this.accept, { toValue: 1, delay: 800, tension: 5, friction: 4.5, useNativeDriver: true })
     ]).start();
+    this.setState({ connectingActive: true });
   }
 
   hideConnecting = () => {
@@ -324,17 +324,33 @@ class App extends Component {
       Animated.spring(this.with, { toValue: 0, delay: 300, useNativeDriver: true }),
       Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 500, useNativeDriver: true }),
       Animated.timing(this.scale, { toValue: 0, duration: 0, delay: 800, useNativeDriver: true })
-    ]).start();
+    ]).start(() => {
+      this.setState({initializingCall: false});
+    });
+    this.setState({ connectingActive: false });
     this.ring.stop();
   }
 
   openCall = () => {
     this.toggleChatOptions();
+    this.setState({ initializingCall: true });
     setTimeout(() => { this.openFriendList() }, 300);
     setTimeout(() => { 
-      this.displayConnecting();
-      this.playRing();
+      Meteor.call('user.getPeerId', this.state.currentFriendSelection._id, (err, res) => {
+        if(err) {
+          console.log(err);
+        } else {
+          this.setUpCall(res);
+        }
+      });
     }, 500);
+  }
+
+  setUpCall = (res) => {
+    this.openFriendList();
+    this.displayConnecting();
+    this.playRing();
+    Peer.startCall(res);
   }
 
   playRing = () => {
@@ -346,6 +362,84 @@ class App extends Component {
         this.ring.reset();
       }
     });
+  }
+
+  getLocalStream = () => {
+    MediaStreamTrack
+      .getSources()
+      .then(sourceInfos => {
+        // console.log(sourceInfos);
+        let videoSourceId;
+        for (let i = 0; i < sourceInfos.length; i++) {
+          const sourceInfo = sourceInfos[i];
+          if(sourceInfo.kind == "video" && sourceInfo.facing == (isFront ? "front" : "back")) {
+            videoSourceId = sourceInfo.id;
+          }
+        }
+        return getUserMedia({
+          audio: true,
+          video: {
+            mandatory: {
+              minWidth: this.props.width,
+              minHeight: this.props.height,
+              minFrameRate: 30
+            },
+            facingMode: 'user',
+            optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
+          }
+        });
+      })
+      .then(stream => {
+        this.setState({ local: stream.toURL(), remote: stream.toURL() });
+        Peer.setLocalStream(stream);
+      })
+      .catch(err => console.log(err));
+  }
+
+  initPeer = () => {
+    Peer.init(Meteor.userId());
+    this.socket = Peer.socket;
+    this.socket.on('offer', (offer) => {
+      console.log('on offer');
+      if(Peer.accepted === null || Peer.accepted === false) {
+        this.displayConnecting();
+        this.playRing();
+      }
+      this.offer = offer;
+    });
+    this.socket.on('accepted', (id) => {
+      console.log('accepted');
+      Peer.accepted = true;
+      Meteor.call('user.getPeerId', id, (err, res) => {
+        if(err) {
+          console.log(err);
+        } else {
+          Peer.startCall(res);
+        }
+      });
+    });
+    this.socket.on('candidate', () => {
+      console.log('on candidate');
+      if(Peer.accepted) this.hideConnecting();
+    });
+  }
+
+  acceptCall = () => {
+    console.log('accept call');
+    this.ring.pause();
+    Peer.accepted = true;
+    this.socket.emit('accepted', { to: Peer.sendAnswerTo, from: Meteor.userId()});
+    this.setState({ callingClasses: "calling calling-show received" });
+  }
+
+  endCall = (e) => {
+    this.ring.pause();
+    this.setState({ callingClasses: "calling" });
+    this.onInitConnect(this.stream);
+    Peer.receivingUser = null;
+    Peer.sendAnswerTo = null;
+    Peer.accepted = null;
+    document.getElementById('you').muted = true;
   }
 
   render = () => {
@@ -362,6 +456,7 @@ class App extends Component {
           colors={['#139A8F', '#0F776E']}>
           <StatusBar
              barStyle="light-content" />
+
           {
             this.state.rp &&
             <Login 
@@ -369,6 +464,24 @@ class App extends Component {
               width={this.width}
               height={this.state.height}
               loggedIn={this.state.loggedIn} />
+          }
+
+          {
+            !this.state.rp &&
+            <ActivityIndicator
+              color="#fff"
+              size="large"
+              style={{
+                height: '100%',
+                width: '100%',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 2
+              }}>
+            </ActivityIndicator>
           }
 
           {
@@ -394,7 +507,14 @@ class App extends Component {
               with={this.with}
               hangUp={this.hangUp}
               accept={this.accept}
-              hideConnecting={this.hideConnecting} />
+              acceptCall={this.acceptCall}
+              hideConnecting={this.hideConnecting}
+              initializingCall={this.state.initializingCall}
+              currentFriend={this.state.currentFriendSelection}
+              local={this.state.local}
+              remote={this.state.remote}
+              getLocalStream={this.getLocalStream}
+              initPeer={this.initPeer} />
           }
 
           {
@@ -445,7 +565,9 @@ class App extends Component {
             anim={this.modalAnim}
             toggleChatOptions={this.toggleChatOptions}
             openChat={this.openChat}
-            openCall={this.openCall} />
+            openCall={this.openCall}
+            states={this.props.states}
+            currentFriend={this.state.currentFriendSelection} />
 
           {
             this.state.loggedIn &&
@@ -458,7 +580,8 @@ class App extends Component {
               openChats={this.state.openChats}
               messages={this.props.messages}
               closeChat={this.closeChat}
-              unread={this.state.unread} />
+              unread={this.state.unread}
+              connectingActive={this.state.connectingActive} />
           }
         </LinearGradient>
       </View>
@@ -476,53 +599,3 @@ const styles = StyleSheet.create({
     position: 'relative'
   },
 });
-
-export default AppContainer = createContainer(() => {
-  const userSub = Meteor.subscribe('userData');
-  const id = Meteor.userId();
-  const user = Meteor.user();
-  const usersSub = Meteor.subscribe('allUserData');
-  const usersState = Meteor.subscribe('userPresence');
-  const userBuddyList = Meteor.subscribe('buddyLists');
-  const userConversations = Meteor.subscribe('conversations');
-  const userMessages = Meteor.subscribe('messages');
-  const usersReady = usersSub.ready();
-  const statesReady = usersState.ready();
-  const buddyListReady = userBuddyList.ready();
-  const conversationsReady = userConversations.ready();
-  const messagesReady = userMessages.ready();
-  const users = Meteor.collection('users').find();
-  const states = Meteor.collection('presences').find();
-  const buddyList = Meteor.collection('buddyLists').find();
-  const conversations = Meteor.collection('conversations').find();
-  const messages = Meteor.collection('messages').find({}, {sort: {date: 1}});
-  const usersExist = usersReady && !!users;
-  const statesExist = usersState && !!states;
-  const buddyListExist = buddyListReady && !!buddyList;
-  const conversationsExist = conversationsReady && !!conversations;
-  const messagesExists = messagesReady && !!messages;
-  return {
-    id,
-    user,
-    usersReady,
-    statesReady,
-    buddyListReady,
-    conversationsReady,
-    messagesReady,
-    usersSub,
-    usersState,
-    userBuddyList,
-    userConversations,
-    userMessages,
-    usersExist,
-    statesExist,
-    buddyListExist,
-    conversationsExist,
-    messagesExists,
-    users,
-    states,
-    buddyList,
-    conversations,
-    messages
-  };
-}, App);

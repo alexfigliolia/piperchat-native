@@ -11,9 +11,6 @@ import {
 export default class Connecting extends Component {
   constructor(props) {
   	super(props);
-  	this.state = {
-  		with: null
-  	}
   	this.styles = {
   		container: {
   			position: 'absolute',
@@ -43,6 +40,7 @@ export default class Connecting extends Component {
   		loader: {
   			height: 50,
   			width: 50,
+        marginBottom: 50,
   			transform: [
   				{ scale: this.props.with.interpolate({
   						inputRange: [0, 1],
@@ -51,6 +49,20 @@ export default class Connecting extends Component {
   				}
   			]
   		},
+      friendImage: {
+        height: 90,
+        width: 90,
+        marginBottom: 50,
+        transform: [
+          { scale: this.props.with.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 1]
+            })
+          }
+        ],
+        borderRadius: 90/2,
+        overflow: 'hidden'
+      },
   		buttonsContainer: {
   			justifyContent: 'center',
   			alignItems: 'center',
@@ -59,22 +71,6 @@ export default class Connecting extends Component {
   			bottom: '15%',
   			left: 0,
   			width: '100%'
-  		},
-  		button1: {
-  			height: 70,
-  			width: 70,
-  			borderRadius: 70/2,
-  			backgroundColor: '#CD3B48',
-  			justifyContent: 'center',
-  			alignItems: 'center',
-  			marginRight: 30,
-  			transform: [
-  				{ translateY: this.props.hangUp.interpolate({
-  						inputRange: [0, 1],
-  						outputRange: [400, 0]
-  					})
-  				}
-  			]
   		},
   		button2: {
   			height: 70,
@@ -105,40 +101,53 @@ export default class Connecting extends Component {
   }
 
   render = () => {
+    const friendImage = this.props.currentFriend.image === undefined ? null : this.props.currentFriend.image;
     return (
     	<Animated.View
     		style={this.styles.container}>
     		<View
     			style={this.styles.inner}>
-    			{
-    				this.state.with === null ?
-    				<Animated.Image
-		    			style={this.styles.loader}
-		    			source={require('../../public/loader.gif')}></Animated.Image>
-		    		:
-		    		<Animated.Image
-		    			style={this.styles.loader}
-		    			source={{uri: this.state.with.image}}></Animated.Image>
-    			}
+    			<Animated.Image
+            style={this.styles.loader}
+            source={require('../../public/loader.gif')}></Animated.Image>
 	    		<View
 	    			style={this.styles.buttonsContainer}>
 	    			<Animated.View>
 	    				<TouchableOpacity
 	    					onPress={this.props.hideConnecting}
-		    				style={this.styles.button1}>
+		    				style={{
+                  height: 70,
+                  width: 70,
+                  borderRadius: 70/2,
+                  backgroundColor: '#CD3B48',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: this.props.initializingCall ? 0 : 30,
+                  transform: [
+                    { translateY: this.props.hangUp.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [400, 0]
+                      })
+                    }
+                  ]
+                }}>
 		    				<Image
 				    			style={this.styles.buttonIcon2}
 				    			source={require('../../public/hangup.png')}></Image>
 	    				</TouchableOpacity>
 	    			</Animated.View>
-	    			<Animated.View>
-	    				<TouchableOpacity
-		    				style={this.styles.button2}>
-		    				<Image
-				    			style={this.styles.buttonIcon}
-				    			source={require('../../public/call.png')}></Image>
-	    				</TouchableOpacity>
-	    			</Animated.View>
+	    			{
+              !this.props.initializingCall &&
+              <Animated.View>
+                <TouchableOpacity
+                  onPress={this.props.acceptCall}
+                  style={this.styles.button2}>
+                  <Image
+                    style={this.styles.buttonIcon}
+                    source={require('../../public/call.png')}></Image>
+                </TouchableOpacity>
+              </Animated.View>
+            }
 	    		</View>
     		</View>
     	</Animated.View>

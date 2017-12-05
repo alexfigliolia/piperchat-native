@@ -50,9 +50,7 @@ export default class FriendList extends Component {
   	this.curList = [];
   }
 
-  componentDidMount = () => {
-  	this.filterRequests(this.props);
-  }
+  componentDidMount = () => this.filterRequests(this.props);
 
   componentWillReceiveProps = (nextProps) => {
   	if(nextProps.friends !== this.props.friends ||
@@ -60,9 +58,7 @@ export default class FriendList extends Component {
   		 nextProps.requests !== this.props.requests) this.filterRequests(nextProps);
   }
 
-  measureLCW(e) {
-  	this.setState({ LCW: e.nativeEvent.layout.width/3 });
-  }
+  measureLCW = (e) => this.setState({ LCW: e.nativeEvent.layout.width/3 });
 
   selectTab = (e, tab) => {
   	if(tab === 'friends') Animated.spring(this.slider, { toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
@@ -95,9 +91,7 @@ export default class FriendList extends Component {
   	}
   }
 
-  blur = () => {
-  	this.curList = null;
-  }
+  blur = () => this.curList = null;
 
   search = (text) => {
   	this.setState({text});
@@ -129,7 +123,7 @@ export default class FriendList extends Component {
 					shadowColor: '#000',
 			    shadowOffset:{ width: 5,  height: 0 },
 			    shadowColor: 'black',
-			    shadowOpacity: 0.3,
+			    shadowOpacity: 0.5,
 			    zIndex: 98,
 			    transform: 
 			      [
