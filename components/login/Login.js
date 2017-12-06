@@ -86,7 +86,7 @@ export default class Login extends Component {
     if(nextProps.user === null || nextProps.user === undefined) this.showLogin();
   }
 
-  keyboardWillShow = (event) => {
+  keyboardWillShow = async (event) => {
     Animated.timing(this.fontSize, {
       duration: event.duration,
       toValue: 1,
@@ -104,7 +104,7 @@ export default class Login extends Component {
     }).start();
   }
 
-  keyboardWillHide = (event) => {
+  keyboardWillHide = async (event) => {
     Animated.timing(this.fontSize, {
       duration: event.duration,
       toValue: 0,
@@ -145,7 +145,7 @@ export default class Login extends Component {
       Animated.parallel([
         Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDriver: true }),
         Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDriver: true }),
-        Animated.spring(this.textPosX, {toValue: 1, useNativeDriver: true })
+        Animated.spring(this.textPosX, {toValue: 1 })
       ]),
       Animated.parallel([
         Animated.spring(this.hatScale, {toValue: 0.5, useNativeDriver: true }),
@@ -153,7 +153,7 @@ export default class Login extends Component {
         Animated.spring(this.hatPosY, {toValue: 0, useNativeDriver: true }),
         Animated.spring(this.inputPosX, {toValue: 1, useNativeDriver: true }),
         Animated.spring(this.buttonPosX, {toValue: 1 }),
-        Animated.spring(this.toggleOptionPosX, {toValue: 1, useNativeDriver: true }),
+        Animated.spring(this.toggleOptionPosX, {toValue: 1 }),
       ]),
     ]).start();
   }
