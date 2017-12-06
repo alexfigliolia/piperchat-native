@@ -73,6 +73,7 @@ const loadSound = () => {
       console.log('failed to load the sound', error);
       return;
     }
+    sound.setVolume(1);
     console.log('duration in seconds: ' + sound.getDuration() + 'number of channels: ' + sound.getNumberOfChannels());
   });
   return sound;

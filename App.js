@@ -53,6 +53,7 @@ export default class App extends Component {
       removeFriendActive: 0,
       friendListActive: 0,
       modalActive: 0,
+      connectionError: '',
       connectingActive: false,
       initializingCall: false,
       friends: [],
@@ -62,7 +63,8 @@ export default class App extends Component {
       currentFriendSelection: {},
       unread: [],
       local: null,
-      remote: null
+      remote: null,
+      canMakeCalls: false
     }
     this.width = null,
     this.height = null,
@@ -78,6 +80,8 @@ export default class App extends Component {
     this.with = new Animated.Value(0);
     this.hangUp = new Animated.Value(0);
     this.accept = new Animated.Value(0);
+    this.errorScale = new Animated.Value(0);
+    this.errorTranslate = new Animated.Value(0);
     this.ring = null;
     this.appState = null;
   }
@@ -88,9 +92,7 @@ export default class App extends Component {
     const {height, width} = Dimensions.get('window');
     this.width = width;
     this.setState({ height, width });
-    PushNotification.configure({
-      onNotification: (notification) => {}
-    });
+    PushNotification.configure({ onNotification: (notification) => {} });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
     this.ring = loadSound();
     AppState.addEventListener('change', this.handleStateChange);
@@ -102,7 +104,7 @@ export default class App extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    console.log(nextProps);
+    // console.log(nextProps);
     if(!this.state.rp) this.setState({rp: true});
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
@@ -113,8 +115,8 @@ export default class App extends Component {
       const unread = nextProps.user.newMessages;
       if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
         sortFriendsUnread(unread, alphabetize(buddyList.friends))
-          .then(ns => this.setState({friends: ns}))
-          .catch(err => console.log(err));
+          .then(ns => this.setState({friends: ns}));
+          // .catch(err => console.log(err));
       }
     }
     if(nextProps.messages.length > 0) this.checkMessages(nextProps.messages);
@@ -168,7 +170,7 @@ export default class App extends Component {
     }
   }
 
-  openMenu = () => {
+  openMenu = async () => {
     if(this.state.friendListActive === 1) this.openFriendList();
     if(this.state.reportAbuseActive === 1) {
       this.openReportAbuse();
@@ -189,7 +191,7 @@ export default class App extends Component {
     Keyboard.dismiss();
   }
 
-  openReportAbuse = () => {
+  openReportAbuse = async () => {
     if(this.state.reportAbuseActive === 0) {
       Animated.parallel([
         Animated.spring(this.raAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }),
@@ -206,7 +208,7 @@ export default class App extends Component {
     });
   }
 
-  openRemoveFriend = () => {
+  openRemoveFriend = async () => {
     if(this.state.removeFriendActive === 0) {
       Animated.spring(this.rfAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }).start();
       Animated.timing(this.menuMove, { toValue: 1, duration: 250, useNativeDriver: true }).start();
@@ -219,7 +221,7 @@ export default class App extends Component {
     });
   }
 
-  openFriendList = () => {
+  openFriendList = async () => {
     if(this.state.removeFriendActive === 1) this.closeMenuAndRemoveFriend();
     if(this.state.reportAbuseActive === 1) this.closeMenuAndReportAbuse();
     if(this.state.menuActive === 1) this.openMenu();
@@ -241,7 +243,7 @@ export default class App extends Component {
     }
   }
 
-  closeMenuAndRemoveFriend = () => {
+  closeMenuAndRemoveFriend = async () => {
     Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
     Animated.spring(this.rfAnim, { toValue: 0, useNativeDriver: true }).start();
     Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
@@ -250,7 +252,7 @@ export default class App extends Component {
     });
   }
 
-  closeMenuAndReportAbuse = () => {
+  closeMenuAndReportAbuse = async () => {
     Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
     Animated.spring(this.raAnim, { toValue: 0, useNativeDriver: true }).start();
     Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
@@ -259,7 +261,7 @@ export default class App extends Component {
     });
   }
 
-  toggleChatOptions = (e, person) => {
+  toggleChatOptions = async (e, person) => {
     if(person !== undefined) {
       this.setState({currentFriendSelection: person});
     }
@@ -289,7 +291,7 @@ export default class App extends Component {
       this.setState({ openChats: ns }, () => {
         if(this.state.unread.indexOf(cf._id) !== -1) {
           Meteor.call('user.removeNew', cf._id, (err, res) => {
-            if(err) console.log(err);
+            // if(err) console.log(err);
           });
         }
       });
@@ -334,7 +336,7 @@ export default class App extends Component {
     setTimeout(() => { 
       Meteor.call('user.getPeerId', this.state.currentFriendSelection._id, (err, res) => {
         if(err) {
-          console.log(err);
+          // console.log(err);
         } else {
           this.setUpCall(res);
         }
@@ -346,17 +348,12 @@ export default class App extends Component {
     this.displayConnecting();
     this.playRing();
     Peer.startCall(res);
-    this.setState({initializingCall: true});
+    this.setState({ initializingCall: true, remote: null });
   }
 
-  playRing = () => {
+  playRing = async () => {
     this.ring.play((success) => {
-      if (success) {
-        console.log('successfully finished playing');
-      } else {
-        console.log('playback failed due to audio decoding errors');
-        this.ring.reset();
-      }
+      if (success) { } else { this.ring.reset() }
     });
   }
 
@@ -388,57 +385,83 @@ export default class App extends Component {
       .then(stream => {
         this.setState({ local: stream.toURL(), remote: stream.toURL() });
         Peer.setLocalStream(stream);
-      })
-      .catch(err => console.log(err));
+      });
+      // .catch(err => console.log(err));
   }
 
   initPeer = () => {
     Peer.init(Meteor.userId());
     this.socket = Peer.socket;
     this.socket.on('offer', (offer) => {
-      console.log('on offer');
+      // console.log('receiving an offer');
       if(Peer.accepted === null || Peer.accepted === false) {
         this.displayConnecting();
         this.playRing();
+        this.setState({ remote: null });
       }
       this.offer = offer;
     });
     this.socket.on('accepted', (id) => {
-      console.log('accepted');
+      console.log('offer was accepted');
       Peer.accepted = true;
       Meteor.call('user.getPeerId', id, (err, res) => {
-        if(err) {
-          console.log(err);
-        } else {
-          Peer.startCall(res);
-        }
+        if(err) { console.log(err) } else { Peer.startCall(res) }
       });
     });
     this.socket.on('candidate', () => {
-      console.log('on candidate');
-      if(Peer.accepted) this.hideConnecting();
+      // if(Peer.accepted) this.midCallConnecting();
     });
+    this.socket.on('friendConnectionError', (err) => this.displayConnectionError(err));
+    this.socket.on("connect", () => this.setState({canMakeCalls: true}));
+    this.socket.on("connect_failed", () => this.setState({canMakeCalls: false}));
+    this.socket.on('disconnect', () => this.setState({canMakeCalls: false}));
+    this.socket.on('remoteStream', (stream) => {
+      console.log('receiving remote stream');
+      this.setState({ remote: stream.toURL() });
+    });
+    this.socket.on('endChat', (res) => this.terminatePeer());
   }
 
   acceptCall = () => {
-    console.log('accept call');
-    this.ring.pause();
+    // console.log('accept call');
+    this.ring.stop();
     Peer.accepted = true;
     this.socket.emit('accepted', { to: Peer.sendAnswerTo, from: Meteor.userId()});
     this.setState({ initializingCall: true });
   }
 
-  endCall = (e) => {
-    this.ring.pause();
-    this.setState({ remote: this.stream.toURL() });
+  endCall = () => {
+    console.log(Peer.sendAnswerTo + ' - ' + Peer.receivingUser);
+    const other = Peer.receivingUser === null ? Peer.sendAnswerTo : Peer.receivingUser;
+    this.socket.emit('endChat', other);
+    this.ring.stop();
+    this.hideConnecting();
+    this.terminatePeer();
+  }
+
+  terminatePeer = () => {
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
-    this.hideConnecting();
+    Peer.peerConnection.close();
+    this.setState({ remote: Peer.localStream.toURL() });
   }
 
-  handleNewStream = (stream) => {
-    this.setState({ remote: stream.toURL() });
+  displayConnectionError = (err) => {
+    this.setState({connectionError: err});
+    Animated.parallel([
+      Animated.spring(this.errorScale, {toValue: 1}),
+      Animated.spring(this.errorTranslate, {toValue: 1})
+    ]).start();
+  }
+
+  dismissConnectionError = () => {
+    Animated.parallel([
+      Animated.spring(this.errorScale, {toValue: 0}),
+      Animated.spring(this.errorTranslate, {toValue: 0})
+    ]).start(() => {
+      this.endCall();
+    });
   }
 
   render = () => {
@@ -513,7 +536,11 @@ export default class App extends Component {
               local={this.state.local}
               remote={this.state.remote}
               getLocalStream={this.getLocalStream}
-              initPeer={this.initPeer} />
+              initPeer={this.initPeer}
+              connectionError={this.state.connectionError}
+              errorScale={this.errorScale}
+              errorTranslate={this.errorTranslate}
+              dismissConnectionError={this.dismissConnectionError} />
           }
 
           {
@@ -566,7 +593,8 @@ export default class App extends Component {
             openChat={this.openChat}
             openCall={this.openCall}
             states={this.props.states}
-            currentFriend={this.state.currentFriendSelection} />
+            currentFriend={this.state.currentFriendSelection}
+            canMakeCalls={this.state.canMakeCalls} />
 
           {
             this.state.loggedIn &&

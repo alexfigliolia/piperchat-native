@@ -3,21 +3,13 @@ import { Animated, View } from 'react-native';
 import You from './You';
 import Me from './Me';
 import Connecting from './Connecting';
+import ConnectionError from './ConnectionError';
 
 export default class Dashboard extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      local: null,
-      remote: null
-    }
-  }
-
   componentDidMount = () => {
     this.props.getLocalStream();
     this.props.initPeer();
   }
-
   render = () => {
     return (
     	<Animated.View
@@ -59,6 +51,12 @@ export default class Dashboard extends Component {
           initializingCall={this.props.initializingCall}
           currentFriend={this.props.currentFriend}
           acceptCall={this.props.acceptCall} />
+        <ConnectionError 
+          error={this.props.connectionError}
+          translate={this.props.errorTranslate}
+          scale={this.props.errorScale}
+          height={this.props.height}
+          dismissConnectionError={this.props.dismissConnectionError} />
     	</Animated.View>
     );
   }

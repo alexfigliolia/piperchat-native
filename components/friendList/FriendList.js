@@ -224,7 +224,7 @@ export default class FriendList extends Component {
 		    				<TextInput 
 		    					style={{
 		    						marginTop: 15,
-		    						backgroundColor: "#fff",
+		    						backgroundColor: "#FFF",
 		    						width: '82.5%',
 		    						borderRadius: 35/2,
 		    						height: 25,

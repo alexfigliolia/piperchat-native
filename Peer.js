@@ -20,12 +20,15 @@ const Peer = {
     Peer.socket = io('https://piper-signaler.herokuapp.com',
       {reconnect: true, transports : ['websocket'], path: '/socket.io'}
     );
+    Peer.socket.on("connect", () => {
+      // console.log('can make calls');
+    });
 		Peer.socket.emit('connected', user);
 		Peer.socket.on('offer', Peer.onOffer);
 		Peer.socket.on('uniqueID', (uniqueID) => {
 			Meteor.call('user.updatePeerID', uniqueID, (error, result) => {
 		  	if(error) {
-		  		console.log(error);
+		  		// console.log(error);
 		  	} else {
 		  		Peer.uniqueID = uniqueID;
 		  	}
@@ -87,7 +90,7 @@ const Peer = {
   },
 
   onCandidate: (candidate) => {
-  	console.log('receiving candidate from socket');
+  	// console.log('receiving candidate from socket');
     rtcCandidate = new RTCIceCandidate(JSON.parse(candidate));
     Peer.peerConnection.addIceCandidate(rtcCandidate);
   },
@@ -106,7 +109,7 @@ const Peer = {
       },
       //Handle Error
       (err) => {
-        console.log(err);
+        // console.log(err);
       }
     );
   },
@@ -119,6 +122,7 @@ const Peer = {
       Peer.peerConnection.createAnswer(
       	(answer) => {
 		      Peer.peerConnection.setLocalDescription(answer);
+          console.log('set local description');
 		      Peer.sendAnswerTo = offer.from;
 		      Peer.socket.emit('answer', {
 	        	to: offer.from, 
@@ -130,7 +134,7 @@ const Peer = {
   },
 
   onOffer: (offer) => {
-    console.log('received offer');
+    console.log('received offer' + ' - ' + Peer.accepted);
     Peer.sendAnswerTo = offer.from;
     if(Peer.accepted) Peer.initConn(Peer.createAnswer(offer));
   },
@@ -142,7 +146,8 @@ const Peer = {
   },
 
   onAddStream: (e, bool=false) => {
-  	console.log('setting remote stream');
+    console.log('on add stream called');
+    Peer.socket.emit('remoteStream', e.stream);
   }
 
 }
