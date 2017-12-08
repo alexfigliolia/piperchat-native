@@ -12,30 +12,29 @@ export default class Connecting extends Component {
   constructor(props) {
   	super(props);
   	this.styles = {
-  		container: {
-  			position: 'absolute',
-  			top: 0,
-  			left: 0,
-  			height: '100%',
-  			width: '100%',
-  			backgroundColor: 'rgba(0,0,0,0.75)',
-  			justifyContent: 'center',
-  			alignItems: 'center',
-  			transform: [
-  				{ scale: this.props.scale.interpolate({
-  						inputRange: [0, 1],
-  						outputRange: [0, 1]
-  					})
-  				}
-  			],
-  			opacity: this.props.dim
-  		},
+      container: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        transform: [
+          { scale: this.props.scale.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 1]
+            })
+          }
+        ],
+      },
   		inner: {
   			height: '100%',
   			width: '100%',
   			justifyContent: 'center',
   			alignItems: 'center',
-  			position: 'relative'
+  			position: 'relative',
+        zIndex: 3,
   		},
   		loader: {
   			height: 50,
@@ -70,7 +69,8 @@ export default class Connecting extends Component {
   			position: 'absolute',
   			bottom: '15%',
   			left: 0,
-  			width: '100%'
+  			width: '100%',
+        zIndex: 3
   		},
   		button2: {
   			height: 70,
@@ -80,8 +80,13 @@ export default class Connecting extends Component {
   			justifyContent: 'center',
   			alignItems: 'center',
   			marginLeft: 30,
+        shadowColor: '#000',
+        shadowOffset:{ width: 0,  height: 5 },
+        shadowColor: 'black',
+        shadowOpacity: 0.6,
+        shadowRadius: 5,
   			transform: [
-  				{ translateY: this.props.accept.interpolate({
+  				{ translateY: this.props.acceptAnim.interpolate({
   						inputRange: [0, 1],
   						outputRange: [400, 0]
   					})
@@ -107,6 +112,19 @@ export default class Connecting extends Component {
     		style={this.styles.container}>
     		<View
     			style={this.styles.inner}>
+          <Animated.View
+            style={{
+              height: '100%',
+              width: '100%',
+              backgroundColor: 'rgba(0,0,0,0.75)',
+              opacity: this.props.dim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 1]
+              }),
+              position: 'absolute',
+              top: 0,
+              left: 0
+            }}></Animated.View>
     			<Animated.Image
             style={this.styles.loader}
             source={require('../../public/loader.gif')}></Animated.Image>
@@ -114,7 +132,7 @@ export default class Connecting extends Component {
 	    			style={this.styles.buttonsContainer}>
 	    			<Animated.View>
 	    				<TouchableOpacity
-	    					onPress={this.props.hideConnecting}
+	    					onPress={this.props.endCall}
 		    				style={{
                   height: 70,
                   width: 70,
@@ -123,8 +141,13 @@ export default class Connecting extends Component {
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginRight: this.props.initializingCall ? 0 : 30,
+                  shadowColor: '#000',
+                  shadowOffset:{ width: 0,  height: 5 },
+                  shadowColor: 'black',
+                  shadowOpacity: 0.6,
+                  shadowRadius: 5,
                   transform: [
-                    { translateY: this.props.hangUp.interpolate({
+                    { translateY: this.props.hangUpAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [400, 0]
                       })

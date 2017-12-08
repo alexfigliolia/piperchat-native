@@ -162,7 +162,7 @@ export default class Login extends Component {
     Animated.parallel([
       Animated.spring(this.hatScale, {toValue: 10, tension: 60, useNativeDriver: true }),
       Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDriver: true }),
-    ])
+    ]).start();
   }
 
   toggleNewUser = () => {
@@ -255,7 +255,7 @@ export default class Login extends Component {
             this.makeCheck();
             this.setState({ error: "" });
             Meteor.call('user.createBuddyList', (error, result) => {
-              // if(error) console.log(error);
+              if(error) console.log(error);
             });
             setTimeout(() => {
               this.unmakeCircle();
@@ -275,23 +275,29 @@ export default class Login extends Component {
   }
 
   makeCircle = async () => {
-    Animated.timing(this.buttonAnim, { toValue: 38, duration: 300 }).start();
-    Animated.timing(this.borderRadius, { toValue: 38/2, duration: 300 }).start();
-    Animated.timing(this.opacity, { toValue: 0, duration: 150  }).start();
-    Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150 }).start();
+    Animated.parallel([
+      Animated.timing(this.buttonAnim, { toValue: 38, duration: 300 }),
+      Animated.timing(this.borderRadius, { toValue: 38/2, duration: 300 }),
+      Animated.timing(this.opacity, { toValue: 0, duration: 150  }),
+      Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150 })
+    ]).start();
   }
 
   unmakeCircle = async () => {
-    Animated.timing(this.buttonAnim, { toValue: 300, duration: 300 }).start();
-    Animated.timing(this.borderRadius, { toValue: 2, duration: 300 }).start();
-    Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300 }).start();
-    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }).start();
-    Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0 }).start();
+    Animated.parallel([
+      Animated.timing(this.buttonAnim, { toValue: 300, duration: 300 }),
+      Animated.timing(this.borderRadius, { toValue: 2, duration: 300 }),
+      Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300 }),
+      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }),
+      Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0 })
+    ]).start();
   }
 
   makeCheck = async () => {
-    Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }).start();
-    Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150 }).start();
+    Animated.parallel([
+      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }),
+      Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150 })
+    ]).start();
   }
 
   render = () => {
@@ -304,7 +310,7 @@ export default class Login extends Component {
           flex: 1,
           height: '100%',
           width: '100%',
-          zIndex: 20934857,
+          zIndex: 20957,
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#139A8F',

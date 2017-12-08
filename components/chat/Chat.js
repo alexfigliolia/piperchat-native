@@ -133,11 +133,11 @@ export default class Chat extends PureComponent {
   	if(this.flatList) this.flatList.scrollToOffset(0, {animated: bool});
   }
 
-  keyboardWillShow = (event) => {
+  keyboardWillShow = async (event) => {
     Animated.timing(this.chat, { duration: event.duration, toValue: 1 }).start();
   }
 
-  keyboardWillHide = (event) => {
+  keyboardWillHide = async (event) => {
     Animated.timing(this.chat, { duration: event.duration, toValue: 0 }).start();
   }
 

@@ -1,6 +1,6 @@
 import Meteor from 'react-native-meteor';
 import update from 'immutability-helper';
-import { default as Sound } from 'react-native-sound';
+import Sound from 'react-native-sound';
 import PushNotification from 'react-native-push-notification';
 
 const checkSelfFriend = async (path) =>{

@@ -20,18 +20,12 @@ const Peer = {
     Peer.socket = io('https://piper-signaler.herokuapp.com',
       {reconnect: true, transports : ['websocket'], path: '/socket.io'}
     );
-    Peer.socket.on("connect", () => {
-      // console.log('can make calls');
-    });
+    Peer.socket.on("connect", () => {});
 		Peer.socket.emit('connected', user);
 		Peer.socket.on('offer', Peer.onOffer);
 		Peer.socket.on('uniqueID', (uniqueID) => {
 			Meteor.call('user.updatePeerID', uniqueID, (error, result) => {
-		  	if(error) {
-		  		// console.log(error);
-		  	} else {
-		  		Peer.uniqueID = uniqueID;
-		  	}
+		  	if(error) { console.log(error) } else { Peer.uniqueID = uniqueID }
 		  });
 		});
     Meteor.call('user.updatePresence', (err, res) => {
@@ -57,7 +51,7 @@ const Peer = {
     });
     Peer.peerConnection.addStream(Peer.localStream);
     Peer.peerConnection.onicecandidate = Peer.onIceCandidate;
-    Peer.peerConnection.onaddstream = Peer.onAddStream;
+    // Peer.peerConnection.onaddstream = Peer.onAddStream;
     Peer.peerConnection.oniceconnectionstatechange = Peer.onIceStateChange;
     Peer.socket.on('candidate', Peer.onCandidate);
     Peer.socket.on('answer', Peer.onAnswer);
@@ -90,8 +84,7 @@ const Peer = {
   },
 
   onCandidate: (candidate) => {
-  	// console.log('receiving candidate from socket');
-    rtcCandidate = new RTCIceCandidate(JSON.parse(candidate));
+    const rtcCandidate = new RTCIceCandidate(JSON.parse(candidate));
     Peer.peerConnection.addIceCandidate(rtcCandidate);
   },
 
@@ -109,20 +102,18 @@ const Peer = {
       },
       //Handle Error
       (err) => {
-        // console.log(err);
+        console.log(err);
       }
     );
   },
 
   createAnswer: (offer) => {
-    console.log('creating the answer');
     return () => {
       rtcOffer = new RTCSessionDescription(JSON.parse(offer.offer));
       Peer.peerConnection.setRemoteDescription(rtcOffer);
       Peer.peerConnection.createAnswer(
       	(answer) => {
 		      Peer.peerConnection.setLocalDescription(answer);
-          console.log('set local description');
 		      Peer.sendAnswerTo = offer.from;
 		      Peer.socket.emit('answer', {
 	        	to: offer.from, 
@@ -134,20 +125,17 @@ const Peer = {
   },
 
   onOffer: (offer) => {
-    console.log('received offer' + ' - ' + Peer.accepted);
     Peer.sendAnswerTo = offer.from;
     if(Peer.accepted) Peer.initConn(Peer.createAnswer(offer));
   },
 
   onAnswer: (answer) => {
-    console.log('received answer');
     const rtcAnswer = new RTCSessionDescription(JSON.parse(answer));
     Peer.peerConnection.setRemoteDescription(rtcAnswer);
   },
 
-  onAddStream: (e, bool=false) => {
-    console.log('on add stream called');
-    Peer.socket.emit('remoteStream', e.stream);
+  onAddStream: (event) => {
+    Peer.socket.emit('remoteStream', event.stream);
   }
 
 }

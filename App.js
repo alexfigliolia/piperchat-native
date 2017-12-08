@@ -104,7 +104,7 @@ export default class App extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    // console.log(nextProps);
+    console.log(nextProps);
     if(!this.state.rp) this.setState({rp: true});
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
@@ -115,8 +115,8 @@ export default class App extends Component {
       const unread = nextProps.user.newMessages;
       if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
         sortFriendsUnread(unread, alphabetize(buddyList.friends))
-          .then(ns => this.setState({friends: ns}));
-          // .catch(err => console.log(err));
+          .then(ns => this.setState({friends: ns}))
+          .catch(err => console.log(err));
       }
     }
     if(nextProps.messages.length > 0) this.checkMessages(nextProps.messages);
@@ -154,7 +154,7 @@ export default class App extends Component {
     this.appState = nextState;
   }
 
-  checkMessages = (messageList) => {
+  checkMessages = async (messageList) => {
     const last = messageList[messageList.length - 1];
     if(last.to._id === Meteor.userId()) sendNotification(last);
   }
@@ -225,6 +225,7 @@ export default class App extends Component {
     if(this.state.removeFriendActive === 1) this.closeMenuAndRemoveFriend();
     if(this.state.reportAbuseActive === 1) this.closeMenuAndReportAbuse();
     if(this.state.menuActive === 1) this.openMenu();
+    if(this.state.modalActive === 1) this.toggleChatOptions();
     if(this.state.friendListActive === 0) {
       Animated.spring(this.friendsAnim, {toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
       Animated.timing(this.body, { toValue: 2, useNativeDriver: true, duration: 200 }).start();
@@ -304,10 +305,10 @@ export default class App extends Component {
     this.setState({openChats: u});
   }
 
-  displayConnecting = () => {
+  displayConnecting = async () => {
     Animated.parallel([
       Animated.timing(this.scale, { toValue: 1, duration: 0, useNativeDriver: true }),
-      Animated.timing(this.dim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.timing(this.dim, { toValue: 1, duration: 300 }),
       Animated.spring(this.with, { toValue: 1, delay: 500, useNativeDriver: true }),
       Animated.spring(this.hangUp, { toValue: 1, delay: 700, tension: 5, friction: 4.5, useNativeDriver: true }),
       Animated.spring(this.accept, { toValue: 1, delay: 800, tension: 5, friction: 4.5, useNativeDriver: true })
@@ -315,12 +316,12 @@ export default class App extends Component {
     this.setState({ connectingActive: true });
   }
 
-  hideConnecting = () => {
+  hideConnecting = async () => {
     Animated.parallel([
       Animated.spring(this.accept, { toValue: 0, tension: 5, friction: 4.5, useNativeDriver: true }),
       Animated.spring(this.hangUp, { toValue: 0, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
       Animated.spring(this.with, { toValue: 0, delay: 300, useNativeDriver: true }),
-      Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 500, useNativeDriver: true }),
+      Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 500 }),
       Animated.timing(this.scale, { toValue: 0, duration: 0, delay: 800, useNativeDriver: true })
     ]).start(() => {
       this.setState({initializingCall: false});
@@ -329,17 +330,21 @@ export default class App extends Component {
     this.ring.stop();
   }
 
+  callInProgress = async () => {
+    Animated.parallel([
+      Animated.spring(this.hangUp, { toValue: 1, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
+      Animated.spring(this.with, { toValue: 0, delay: 300, useNativeDriver: true }),
+      Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 0 }),
+    ]).start();
+  }
+
   openCall = () => {
     this.toggleChatOptions();
     this.setState({ initializingCall: true });
     setTimeout(() => { this.openFriendList() }, 300);
     setTimeout(() => { 
       Meteor.call('user.getPeerId', this.state.currentFriendSelection._id, (err, res) => {
-        if(err) {
-          // console.log(err);
-        } else {
-          this.setUpCall(res);
-        }
+        if(err) { console.log(err); } else { this.setUpCall(res); }
       });
     }, 500);
   }
@@ -372,11 +377,11 @@ export default class App extends Component {
         return getUserMedia({
           audio: true,
           video: {
-            mandatory: {
-              minWidth: this.props.width,
-              minHeight: this.props.height,
-              minFrameRate: 30
-            },
+            // mandatory: {
+            //   minWidth: this.props.width,
+            //   minHeight: this.props.height,
+            //   minFrameRate: 30
+            // },
             facingMode: 'user',
             optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
           }
@@ -385,8 +390,8 @@ export default class App extends Component {
       .then(stream => {
         this.setState({ local: stream.toURL(), remote: stream.toURL() });
         Peer.setLocalStream(stream);
-      });
-      // .catch(err => console.log(err));
+      })
+      .catch(err => console.log(err));
   }
 
   initPeer = () => {
@@ -397,7 +402,6 @@ export default class App extends Component {
       if(Peer.accepted === null || Peer.accepted === false) {
         this.displayConnecting();
         this.playRing();
-        this.setState({ remote: null });
       }
       this.offer = offer;
     });
@@ -408,8 +412,16 @@ export default class App extends Component {
         if(err) { console.log(err) } else { Peer.startCall(res) }
       });
     });
+    this.socket.on('answer', () => {
+      if(Peer.peerConnection) {
+        Peer.peerConnection.onaddstream = this.setRemoteStream;
+      }
+    })
     this.socket.on('candidate', () => {
-      // if(Peer.accepted) this.midCallConnecting();
+      if(Peer.accepted) this.callInProgress();
+      if(Peer.peerConnection) {
+        Peer.peerConnection.onaddstream = this.setRemoteStream;
+      }
     });
     this.socket.on('friendConnectionError', (err) => this.displayConnectionError(err));
     this.socket.on("connect", () => this.setState({canMakeCalls: true}));
@@ -422,8 +434,14 @@ export default class App extends Component {
     this.socket.on('endChat', (res) => this.terminatePeer());
   }
 
+  setRemoteStream = (e) => {
+    this.setState({ remote: e.stream.toURL() }, () => {
+      this.callInProgress();
+      this.ring.stop();
+    });
+  }
+
   acceptCall = () => {
-    // console.log('accept call');
     this.ring.stop();
     Peer.accepted = true;
     this.socket.emit('accepted', { to: Peer.sendAnswerTo, from: Meteor.userId()});
@@ -431,20 +449,21 @@ export default class App extends Component {
   }
 
   endCall = () => {
-    console.log(Peer.sendAnswerTo + ' - ' + Peer.receivingUser);
+    console.log('called endCall');
     const other = Peer.receivingUser === null ? Peer.sendAnswerTo : Peer.receivingUser;
+    console.log(Meteor.user().profile.peerId + ' - ' + other);
     this.socket.emit('endChat', other);
-    this.ring.stop();
-    this.hideConnecting();
     this.terminatePeer();
   }
 
   terminatePeer = () => {
+    this.ring.stop();
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
-    Peer.peerConnection.close();
-    this.setState({ remote: Peer.localStream.toURL() });
+    this.hideConnecting();
+    if(Peer.localStream) this.setState({ remote: Peer.localStream.toURL() });
+    if(Peer.peerConnection) Peer.peerConnection.close();
   }
 
   displayConnectionError = (err) => {
@@ -513,7 +532,8 @@ export default class App extends Component {
               raActive={this.state.reportAbuseActive}
               rfActive={this.state.removeFriendActive}
               menuActive={this.state.menuActive}
-              openFriendList={this.openFriendList} />
+              openFriendList={this.openFriendList}
+              unread={this.state.unread} />
           }
               
           {
@@ -527,14 +547,13 @@ export default class App extends Component {
               scale={this.scale}
               dim={this.dim}
               with={this.with}
-              hangUp={this.hangUp}
-              accept={this.accept}
+              acceptAnim={this.accept}
+              hangUpAnim={this.hangUp}
+              endCall={this.endCall}
               acceptCall={this.acceptCall}
               hideConnecting={this.hideConnecting}
               initializingCall={this.state.initializingCall}
               currentFriend={this.state.currentFriendSelection}
-              local={this.state.local}
-              remote={this.state.remote}
               getLocalStream={this.getLocalStream}
               initPeer={this.initPeer}
               connectionError={this.state.connectionError}

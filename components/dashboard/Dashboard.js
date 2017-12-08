@@ -6,10 +6,12 @@ import Connecting from './Connecting';
 import ConnectionError from './ConnectionError';
 
 export default class Dashboard extends Component {
+  
   componentDidMount = () => {
     this.props.getLocalStream();
     this.props.initPeer();
   }
+
   render = () => {
     return (
     	<Animated.View
@@ -42,15 +44,17 @@ export default class Dashboard extends Component {
           width={this.props.width} 
           stream={this.props.local} />
         <Connecting
+          accept={this.props.accept}
           scale={this.props.scale}
           dim={this.props.dim}
+          hangUpAnim={this.props.hangUpAnim}
+          acceptAnim={this.props.acceptAnim}
           with={this.props.with}
-          hangUp={this.props.hangUp}
-          accept={this.props.accept}
+          endCall={this.props.endCall}
+          acceptCall={this.props.acceptCall}
           hideConnecting={this.props.hideConnecting}
           initializingCall={this.props.initializingCall}
-          currentFriend={this.props.currentFriend}
-          acceptCall={this.props.acceptCall} />
+          currentFriend={this.props.currentFriend} />
         <ConnectionError 
           error={this.props.connectionError}
           translate={this.props.errorTranslate}

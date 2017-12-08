@@ -58,8 +58,10 @@ export default class Me extends Component {
       Animated.timing(this.state.pan, {
         toValue: {
           x: 0, 
-          y: ((this.props.height - 55) - ((this.props.height - 57.5) * 0.3333)) * -1
-        }
+          y: ((this.props.height - 55) - (this.props.height/4) ) * -1
+        },
+        duration: 300,
+        delay: 500
       }).start();
     }
   }
@@ -72,7 +74,7 @@ export default class Me extends Component {
   }
 
   getYBound = () => {
-    const yMax = ((this.props.height - 55) - ((this.props.height - 57.5) * 0.3333)) * -1;
+    const yMax = ( (this.props.height - 60) - (this.props.height/4) ) * -1;
     const y1 = this.state.pan.y._value > 0 ? 0 : this.state.pan.y._value;
     const y2 = y1 < yMax ? yMax : y1;
     return y2;
@@ -82,7 +84,7 @@ export default class Me extends Component {
     return (
     	<Animated.View
     		style={this.state.pan.getLayout(), {
-    			height: this.props.height / 3.5,
+    			height: this.props.height / 4,
           width: '28.57142%',
     			position: 'absolute',
     			bottom: 0,
@@ -105,6 +107,7 @@ export default class Me extends Component {
     		}}
     		{...this.panResponder.panHandlers}>
     		<RTCView
+          objectFit="cover"
       		style={{
       			height: '100%',
           	width: '100%',

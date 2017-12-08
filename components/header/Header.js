@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Image, TouchableWithoutFeedback } from 'react-native';
+import { View, Image, TouchableWithoutFeedback, Animated, Text } from 'react-native';
 import Burger from './Burger';
 
 export default class Header extends Component {
@@ -23,17 +23,43 @@ export default class Header extends Component {
           onPress={this.props.openFriendList}
           style={{
             height: 47.5,
-            width: 47.5
+            width: 47.5,
+            position: 'relative'
           }}>
-          <Image
-            style={{
-              height: 32.5,
-              width: 32.5,
-              marginLeft: 10,
-              marginBottom: 5,
-              marginRight: 7.5
-            }}
-            source={require('../../public/people.png')} />
+          <View>
+            <Image
+              style={{
+                height: 32.5,
+                width: 32.5,
+                marginLeft: 10,
+                marginBottom: 5,
+                marginRight: 7.5
+              }}
+              source={require('../../public/people.png')} />
+            {
+              this.props.unread.length > 0 &&
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -5,
+                  height: 20,
+                  width: 20,
+                  backgroundColor: '#FC3A4C',
+                  borderRadius: 20/2,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                  <Text style={{ 
+                    color: '#fff', 
+                    fontSize: 12,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>{this.props.unread.length}</Text>
+                </Animated.View>
+            }
+          </View>
         </TouchableWithoutFeedback>
     		<Image
           style={{
