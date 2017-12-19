@@ -7,10 +7,7 @@ import ConnectionError from './ConnectionError';
 
 export default class Dashboard extends Component {
   
-  componentDidMount = () => {
-    this.props.getLocalStream();
-    this.props.initPeer();
-  }
+  componentDidMount = () => this.props.getLocalStream();
 
   render = () => {
     return (

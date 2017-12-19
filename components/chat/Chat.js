@@ -269,7 +269,7 @@ export default class Chat extends PureComponent {
 	    					renderItem={({item, index}) => 
 	    						<ChatBubble 
 							  		text={item.text}
-							  		from={item.from._id}
+							  		from={item.from}
 							  		index={index}
 							  		length={this.state.visible.length} />
 						 			}

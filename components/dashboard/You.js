@@ -7,7 +7,7 @@ import {
 const You = (props) => {
   return (
     <View
-    	style={{ height: props.height - 60, width: '100%' }}>
+    	style={{ height: props.height, width: '100%' }}>
     	<RTCView
     		style={{ height: '100%', width: '100%' }}
     		streamURL={props.stream} />

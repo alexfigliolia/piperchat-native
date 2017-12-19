@@ -14,7 +14,7 @@ const checkSelfFriend = async (path) =>{
     for(let i = 0; i<users.length; i++) {
       let isUnique = true;
       for(let j = 0; j<arr.length; j++) {
-        if(users[i]._id === arr[j]._id || users[i]._id === Meteor.userId()) {
+        if(users[i]._id === arr[j] || users[i]._id === Meteor.userId()) {
           isUnique = false;
           break;
         }
@@ -41,7 +41,7 @@ const getMessages = async (messages, id) => {
   const m = [];
   for(let i = 0; i<messages.length; i++) {
     const mes = messages[i];
-    if(mes.from._id === id || mes.to._id === id) m.push(mes);
+    if(mes.from === id || mes.to === id) m.push(mes);
   }
   return m.length >= 65 ? m.slice(m.length - 65).reverse() : m.reverse();
 }

@@ -110,14 +110,14 @@ export default class App extends Component {
       this.getAuth();
     } else {
       const buddyList = nextProps.buddyList[0];
-      const friends = alphabetize(buddyList === undefined ? [] : buddyList.friends);
-      this.letEmIn(nextProps, friends);
+      const exists = 'friends' in buddyList;
+      this.letEmIn(nextProps, exists);
       const unread = nextProps.user.newMessages;
-      if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
-        sortFriendsUnread(unread, alphabetize(buddyList.friends))
-          .then(ns => this.setState({friends: ns}))
-          .catch(err => console.log(err));
-      }
+      // if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
+      //   sortFriendsUnread(unread, alphabetize(buddyList.friends))
+      //     .then(ns => this.setState({friends: ns}))
+      //     .catch(err => console.log(err));
+      // }
     }
     if(nextProps.messages.length > 0) this.checkMessages(nextProps.messages);
   }
@@ -126,17 +126,12 @@ export default class App extends Component {
     this.setState({ loggedIn: false, friends: [], user: null, search: [], sentRequests: [], requests: [], unread: [], openChats: [], currentFriendSelection: {} });
   }
 
-  letEmIn = (path, friends) => {
+  letEmIn = (path, budsExist) => {
     const buds = path.buddyList;
-    const fands = buds.length > 0 ? friends : [];
     const newM = path.user.newMessages;
     this.setState({
       loggedIn: true,
       user: path.user,
-      friends: fands,
-      search: fands,
-      sentRequests: buds.length > 0 ? buds[0].sentRequests : [],
-      requests: buds.length > 0 ? buds[0].requests : [],
       unread: newM !== undefined ? newM : []
     });
     if(buds.length > 0) {
@@ -144,6 +139,38 @@ export default class App extends Component {
         .then( users => this.setState({users}) )
         .catch( err => console.log(err) );
     }
+    console.log(budsExist);
+    if(budsExist && buds[0].friends.length !== this.state.friends.length) {
+      console.log('called friends');
+      this.fillContacts(buds[0].friends);
+    }
+    if(budsExist && buds[0].requests.length !== this.state.requests.length) {
+      console.log('called incoming reqs');
+      this.fillReqs(buds[0].requests);
+    }
+    if(budsExist && buds[0].sentRequests.length !== this.state.sentRequests.length) {
+      console.log('called sent reqs');
+      this.fillSentReqs(buds[0].sentRequests);
+    }
+  }
+
+  fillContacts = async (arr) => {
+    Meteor.call('users.getObjects', arr, (err, res) => {
+      if(err) { console.log(err) } else { this.setState({ friends: alphabetize(res) }) }
+    });
+  }
+
+  fillReqs = async (arr) => {
+    Meteor.call('users.getObjects', arr, (err, res) => {
+      if(err) { console.log(err) } else { this.setState({ requests: res }) }
+    });
+  }
+
+  fillSentReqs = async (arr) => {
+    Meteor.call('users.getObjects', arr, (err, res) => {
+      if(err) { console.log(err) } else { this.setState({ sentRequests: res }) }
+    });
+    console.log(this.state);
   }
 
   handleStateChange = (nextState) => {
@@ -389,6 +416,7 @@ export default class App extends Component {
       })
       .then(stream => {
         this.setState({ local: stream.toURL(), remote: stream.toURL() });
+        this.initPeer();
         Peer.setLocalStream(stream);
       })
       .catch(err => console.log(err));
