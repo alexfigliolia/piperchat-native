@@ -149,17 +149,24 @@ export default class Menu extends Component {
 
   editProfile = () => {
   	this.setState(prevState => {
-  		if(prevState.showProfile) {
-  			Animated.spring(this.inputAnim, { toValue: 0}).start();
-    		Animated.spring(this.textAnim, { toValue: 0}).start();
-    		Animated.spring(this.imageAnim, { toValue: 0}).start();
-  		} else {
-  			Animated.spring(this.inputAnim, { toValue: 1}).start();
-    		Animated.spring(this.textAnim, { toValue: 1}).start();
-    		Animated.spring(this.imageAnim, { toValue: 1}).start();
-  		}
-  		Keyboard.dismiss();
+  		let val;
+  		if(prevState.showProfile) { val = 0 } else { val = 1 }
+			Animated.parallel([
+				Animated.spring(this.inputAnim, { toValue: val, useNativeDriver: true }),
+    		Animated.spring(this.textAnim, { toValue: val, useNativeDriver: true }),
+    		Animated.spring(this.imageAnim, { toValue: val, useNativeDriver: true })
+			]).start(() => { Keyboard.dismiss() });
   		return { showProfile: !prevState.showProfile }
+  	});
+  }
+
+  closeProfile = () => {
+  	Animated.parallel([
+  		Animated.spring(this.inputAnim, { toValue: 0, useNativeDriver: true }),
+    	Animated.spring(this.textAnim, { toValue: 0, useNativeDriver: true }),
+    	Animated.spring(this.imageAnim, { toValue: 0, useNativeDriver: true })
+  	]).start(() => {
+  		this.setState({ showProfile: false }, Keyboard.dismiss);
   	});
   }
 
@@ -170,10 +177,7 @@ export default class Menu extends Component {
  					console.log(error) 
  				} else { 
  					this.editProfile();
- 					this.setState({text: ''})
- 					Meteor.call('user.cleanName', this.state.text, (error, result) => {
- 						if(error) console.log(error);
- 					});
+ 					this.setState({text: ''});
  				}
  			});
   	}
@@ -201,9 +205,11 @@ export default class Menu extends Component {
 	    				style={this.styles.container3}>
 	    				<UploadImage
 	    					user={this.props.user}
+	    					image={this.props.user.image}
 	    					imageAnim={this.imageAnim}
 	    					editProfile={this.editProfile}
-	    					showProfile={this.state.showProfile} />
+	    					showProfile={this.state.showProfile}
+	    					closeProfile={this.closeProfile} />
 			    		<Animated.Text 
 			    			style={this.styles.animatedText}>
 			    			{this.props.user !== null ? this.props.user.name : ''}

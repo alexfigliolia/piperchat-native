@@ -92,7 +92,11 @@ export default class App extends Component {
     const {height, width} = Dimensions.get('window');
     this.width = width;
     this.setState({ height, width });
-    PushNotification.configure({ onNotification: (notification) => {} });
+    PushNotification.configure({ 
+      onNotification: (notification) => {
+        notification.finish(PushNotificationIOS.FetchResult.NoData);
+      } 
+    });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
     this.ring = loadSound();
     AppState.addEventListener('change', this.handleStateChange);
@@ -104,27 +108,20 @@ export default class App extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    Keyboard.dismiss();
     console.log(nextProps);
     if(!this.state.rp) this.setState({rp: true});
     if(nextProps.user === null || nextProps.id === null) {
       this.getAuth();
     } else {
       const buddyList = nextProps.buddyList[0];
-      const exists = 'friends' in buddyList;
+      const exists = buddyList !== undefined && 'friends' in buddyList;
       this.letEmIn(nextProps, exists);
-      const unread = nextProps.user.newMessages;
-      // if(unread !== undefined && unread.length !== 0 && buddyList !== undefined) {
-      //   sortFriendsUnread(unread, alphabetize(buddyList.friends))
-      //     .then(ns => this.setState({friends: ns}))
-      //     .catch(err => console.log(err));
-      // }
     }
     if(nextProps.messages.length > 0) this.checkMessages(nextProps.messages);
   }
 
-  getAuth = () => {
-    this.setState({ loggedIn: false, friends: [], user: null, search: [], sentRequests: [], requests: [], unread: [], openChats: [], currentFriendSelection: {} });
-  }
+  getAuth = () => this.setState({ loggedIn: false, friends: [], user: null, search: [], sentRequests: [], requests: [], unread: [], openChats: [], currentFriendSelection: {} });
 
   letEmIn = (path, budsExist) => {
     const buds = path.buddyList;
@@ -139,17 +136,13 @@ export default class App extends Component {
         .then( users => this.setState({users}) )
         .catch( err => console.log(err) );
     }
-    console.log(budsExist);
     if(budsExist && buds[0].friends.length !== this.state.friends.length) {
-      console.log('called friends');
       this.fillContacts(buds[0].friends);
     }
     if(budsExist && buds[0].requests.length !== this.state.requests.length) {
-      console.log('called incoming reqs');
       this.fillReqs(buds[0].requests);
     }
     if(budsExist && buds[0].sentRequests.length !== this.state.sentRequests.length) {
-      console.log('called sent reqs');
       this.fillSentReqs(buds[0].sentRequests);
     }
   }
@@ -170,13 +163,11 @@ export default class App extends Component {
     Meteor.call('users.getObjects', arr, (err, res) => {
       if(err) { console.log(err) } else { this.setState({ sentRequests: res }) }
     });
-    console.log(this.state);
   }
 
   handleStateChange = (nextState) => {
     if(this.appState === 'inactive' && nextState === 'active') {
       this.getLocalStream();
-      this.initPeer();
     }
     this.appState = nextState;
   }
@@ -319,7 +310,7 @@ export default class App extends Component {
       this.setState({ openChats: ns }, () => {
         if(this.state.unread.indexOf(cf._id) !== -1) {
           Meteor.call('user.removeNew', cf._id, (err, res) => {
-            // if(err) console.log(err);
+            if(err) console.log(err);
           });
         }
       });
@@ -416,8 +407,8 @@ export default class App extends Component {
       })
       .then(stream => {
         this.setState({ local: stream.toURL(), remote: stream.toURL() });
-        this.initPeer();
         Peer.setLocalStream(stream);
+        this.initPeer();
       })
       .catch(err => console.log(err));
   }
@@ -479,7 +470,6 @@ export default class App extends Component {
   endCall = () => {
     console.log('called endCall');
     const other = Peer.receivingUser === null ? Peer.sendAnswerTo : Peer.receivingUser;
-    console.log(Meteor.user().profile.peerId + ' - ' + other);
     this.socket.emit('endChat', other);
     this.terminatePeer();
   }
@@ -490,8 +480,8 @@ export default class App extends Component {
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
     this.hideConnecting();
-    if(Peer.localStream) this.setState({ remote: Peer.localStream.toURL() });
     if(Peer.peerConnection) Peer.peerConnection.close();
+    this.getLocalStream();
   }
 
   displayConnectionError = (err) => {

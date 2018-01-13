@@ -13,10 +13,14 @@ const checkSelfFriend = async (path) =>{
     const unique = [];
     for(let i = 0; i<users.length; i++) {
       let isUnique = true;
-      for(let j = 0; j<arr.length; j++) {
-        if(users[i]._id === arr[j] || users[i]._id === Meteor.userId()) {
-          isUnique = false;
-          break;
+      if (users[i]._id === Meteor.userId()) {
+        isUnique = false;
+      } else {
+        for(let j = 0; j<arr.length; j++) {
+          if(users[i]._id === arr[j]) {
+            isUnique = false;
+            break;
+          }
         }
       }
       if(isUnique) unique.push(users[i]);

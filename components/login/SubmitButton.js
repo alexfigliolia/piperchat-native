@@ -1,46 +1,61 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
 	Animated,
 	View,
-	TouchableOpacity,
+	TouchableWithoutFeedback,
 	Text,
 	Image,
 	StyleSheet
 } from 'react-native';
 
-export default class SubmitButton extends Component {
-  render = () => {
-    return (
-    	<Animated.View
-	      style={{
-	        marginTop: 25,
-	        marginBottom: 20,
-	        backgroundColor: 'transparent',
-	        height: 38,
-	        width: '85%',
-	        maxWidth: this.props.buttonAnim,
-	        borderColor: '#fff',
-	        borderWidth: 1,
-	        justifyContent: 'center',
-	        alignItems: 'center',
-	        borderRadius: this.props.borderRadius,
-	        overflow: 'hidden',
-	        opacity: this.props.entrance.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 1]
-          }),
-          transform: [
-            {translateY: this.props.entrance.interpolate({
-                inputRange: [0, 1],
-                outputRange: [this.props.width / 2, 0]
-              })
-            }
-          ]
-	      }}>
-	      <TouchableOpacity
-	        onPress={this.props.submit}
-	        style={styles.submitButton}>
-	        <Animated.Image 
+const SubmitButton = (props) => {
+  return (
+  	<Animated.View
+      style={{
+        marginTop: 25,
+        marginBottom: 20,
+        backgroundColor: 'transparent',
+        height: 38,
+        width: '85%',
+        maxWidth: props.buttonAnim,
+        borderColor: '#fff',
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: props.borderRadius,
+        overflow: 'hidden',
+        opacity: props.entrance.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1]
+        }),
+        transform: [
+          {translateY: props.entrance.interpolate({
+              inputRange: [0, 1],
+              outputRange: [props.width / 2, 0]
+            })
+          }
+        ]
+      }}>
+      <TouchableWithoutFeedback
+        onPress={props.submit}
+        style={{
+			    width: "100%", 
+			    height: 38, 
+			    backgroundColor: 'transparent',
+			    justifyContent: 'center',
+			    alignItems: 'center',
+			    position: 'relative'
+			  }}>
+        <View
+        	style={{
+				    width: "100%", 
+				    height: 38, 
+				    backgroundColor: 'transparent',
+				    justifyContent: 'center',
+				    alignItems: 'center',
+				    position: 'relative'
+				  }}>
+        	<Animated.Image 
 	          source={require('../../public/loader.gif')}
 	          style={{
 	            position: 'absolute',
@@ -49,7 +64,7 @@ export default class SubmitButton extends Component {
 	            width: 30,
 	            height: 30,
 	            transform: [
-	              { scale: this.props.scale.interpolate({
+	              { scale: props.scale.interpolate({
 	                  inputRange: [0, 1],
 	                  outputRange: [0, 1]
 	                }) 
@@ -66,7 +81,7 @@ export default class SubmitButton extends Component {
 	            height: 30,
 	            zIndex: 2,
 	            transform: [
-	              { scale: this.props.check.interpolate({
+	              { scale: props.check.interpolate({
 	                  inputRange: [0, 1],
 	                  outputRange: [0, 1]
 	                }) 
@@ -74,26 +89,17 @@ export default class SubmitButton extends Component {
 	            ]
 	          }} />
 	        <Animated.Text
-	          onTouch={this.props.submit}
+	          onTouch={props.submit}
 	          style={{
 	            color: '#fff',
 	            fontSize: 16,
 	            fontWeight: '800',
-	            opacity: this.props.opacity,
-	          }}>{this.props.newUser ? "SIGN UP" : "LOGIN"}</Animated.Text>
-	      </TouchableOpacity>
-	    </Animated.View>
-    );
-  }
+	            opacity: props.opacity,
+	          }}>{props.newUser ? "SIGN UP" : "LOGIN"}</Animated.Text>
+        </View>
+      </TouchableWithoutFeedback>
+    </Animated.View>
+  );
 }
 
-const styles = StyleSheet.create({
-	submitButton: {
-    width: "100%", 
-    height: 38, 
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative'
-  }
-});
+export default SubmitButton;

@@ -20,7 +20,8 @@ export default class Login extends Component {
   	super(props);
     this.state = {
       newUser: false,
-      error: ""
+      error: "",
+      timer: 0
     }
     this.loginAnim = new Animated.Value(0);
     this.buttonAnim = new Animated.Value(300);
@@ -83,47 +84,33 @@ export default class Login extends Component {
     if(nextProps.user !== null && nextProps.user !== undefined) {
       setTimeout(() => { this.hideLogin() }, 1000);
     }
-    if(nextProps.user === null || nextProps.user === undefined) this.showLogin();
+    if(nextProps.user === null || nextProps.user === undefined) {
+      if(this.state.timer === 0) {
+        this.showLogin();
+        this.setState({timer: this.state.timer++})
+      }
+    }
   }
 
   keyboardWillShow = async (event) => {
-    Animated.timing(this.fontSize, {
-      duration: event.duration,
-      toValue: 1,
-      useNativeDriver: true
-    }).start();
-    Animated.timing(this.hatPosY, {
-      duration: event.duration,
-      toValue: 0.3,
-      useNativeDriver: true
-    }).start();
-    Animated.timing(this.hatScale, {
-      duration: event.duration,
-      toValue: 0,
-      useNativeDriver: true
-    }).start();
+    Animated.parallel([
+      Animated.timing(this.fontSize, { duration: event.duration, toValue: 1, useNativeDriver: true }),
+      Animated.timing(this.hatPosY, { duration: event.duration, toValue: 0.3, useNativeDriver: true }),
+      Animated.timing(this.hatScale, { duration: event.duration, toValue: 0, useNativeDriver: true })
+    ]).start();
+    this.setState({timer: 0});
   }
 
   keyboardWillHide = async (event) => {
-    Animated.timing(this.fontSize, {
-      duration: event.duration,
-      toValue: 0,
-      useNativeDriver: true
-    }).start();
-    Animated.timing(this.hatPosY, {
-      duration: event.duration,
-      toValue: 0,
-      useNativeDriver: true
-    }).start();
-    Animated.timing(this.hatScale, {
-      duration: event.duration,
-      toValue: 0.5,
-      useNativeDriver: true
-    }).start();
+    Animated.parallel([
+      Animated.timing(this.fontSize, { duration: event.duration, toValue: 0, useNativeDriver: true }),
+      Animated.timing(this.hatPosY, { duration: event.duration, toValue: 0, useNativeDriver: true }),
+      Animated.timing(this.hatScale, { duration: event.duration, toValue: 0.5, useNativeDriver: true })
+    ]).start();
   }
 
   showLogin = async () => {
-     Animated.sequence([
+    Animated.sequence([
       Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, useNativeDriver: true }),
       Animated.timing(this.loginAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
       Animated.timing(this.entrance, { toValue: 1, duration: 500 })
@@ -278,8 +265,8 @@ export default class Login extends Component {
     Animated.parallel([
       Animated.timing(this.buttonAnim, { toValue: 38, duration: 300 }),
       Animated.timing(this.borderRadius, { toValue: 38/2, duration: 300 }),
-      Animated.timing(this.opacity, { toValue: 0, duration: 150  }),
-      Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150 })
+      Animated.timing(this.opacity, { toValue: 0, duration: 150, useNativeDriver: true  }),
+      Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150, useNativeDriver: true })
     ]).start();
   }
 
@@ -287,16 +274,16 @@ export default class Login extends Component {
     Animated.parallel([
       Animated.timing(this.buttonAnim, { toValue: 300, duration: 300 }),
       Animated.timing(this.borderRadius, { toValue: 2, duration: 300 }),
-      Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300 }),
-      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }),
-      Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0 })
+      Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300, useNativeDriver: true }),
+      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
+      Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true })
     ]).start();
   }
 
   makeCheck = async () => {
     Animated.parallel([
-      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0 }),
-      Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150 })
+      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
+      Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150, useNativeDriver: true })
     ]).start();
   }
 
@@ -328,7 +315,7 @@ export default class Login extends Component {
             ]
         }}>
         <TouchableWithoutFeedback
-          onPress={Keyboard.dismiss}
+          onPress={() => Keyboard.dismiss()}
           style={this.styles.uiWrapper}>
       		<LinearGradient
       			style={this.styles.container2}
@@ -465,19 +452,18 @@ export default class Login extends Component {
                       outputRange: [0, 1]
                     }),
                     transform: [
-                      { translateY: this.toggleOptionPosX.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [this.props.width / 2, 0]
-                      })
+                      { 
+                        translateY: this.toggleOptionPosX.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [this.props.width / 2, 0]
+                        })
                       }
                     ]
                   }}>{ this.state.newUser ? "Been here before?" : "Are you new here?"}
                   <Text
                     onPress={this.toggleNewUser}
-                    style={{
-                      color: '#2BEBF0',
-                    }}>
-                      { this.state.newUser ? " Login!" : " Sign Up!" }
+                    style={{ color: '#2BEBF0', }}>
+                    { this.state.newUser ? " Login!" : " Sign Up!" }
                   </Text>
                 </Animated.Text>
               </Animated.View>

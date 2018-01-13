@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { View, Image, TouchableWithoutFeedback, Animated, Text } from 'react-native';
-import Burger from './Burger';
+// import Burger from './Burger';
+import Burg from './Burg';
 
 export default class Header extends Component {
   render = () => {
@@ -68,7 +69,12 @@ export default class Header extends Component {
             marginBottom: 7.5
           }}
           source={require('../../public/piper.jpg')} />
-        <Burger
+{/*        <Burger
+          openMenu={this.props.openMenu}
+          raActive={this.props.raActive}
+          rfActive={this.props.rfActive}
+          menuActive={this.props.menuActive} />*/}
+        <Burg
           openMenu={this.props.openMenu}
           raActive={this.props.raActive}
           rfActive={this.props.rfActive}
