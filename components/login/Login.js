@@ -21,7 +21,8 @@ export default class Login extends Component {
     this.state = {
       newUser: false,
       error: "",
-      timer: 0
+      timer: 0,
+      animatingEntrance: false
     }
     this.loginAnim = new Animated.Value(0);
     this.buttonAnim = new Animated.Value(300);
@@ -30,7 +31,6 @@ export default class Login extends Component {
     this.scale = new Animated.Value(0);
     this.fontSize = new Animated.Value(0);
     this.check = new Animated.Value(0);
-    this.entrance = new Animated.Value(0);
     this.collapse = new Animated.Value(0);
     this.hatPosY = new Animated.Value(1);
     this.hatPosX = new Animated.Value(0);
@@ -74,22 +74,18 @@ export default class Login extends Component {
     }
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    if(!this.state.isLoading) this.setState({isLoading: false});
+    if(nextProps.user !== null && nextProps.user !== undefined && this.props.user === null) {
+      setTimeout(() => { this.hideLogin() }, 1000);
+    }
+    if(nextProps.user === null && this.props.user !== null) this.showLogin();
+    if(nextProps.user === undefined && this.props.user !== undefined) this.showLogin();
+  }
+
   componentWillUnmount = () => {
     this.keyboardWillShowSub.remove();
     this.keyboardWillHideSub.remove();
-  }
-
-  componentWillReceiveProps = (nextProps) => {
-    if(!this.state.isLoading) this.setState({isLoading: false});
-    if(nextProps.user !== null && nextProps.user !== undefined) {
-      setTimeout(() => { this.hideLogin() }, 1000);
-    }
-    if(nextProps.user === null || nextProps.user === undefined) {
-      if(this.state.timer === 0) {
-        this.showLogin();
-        this.setState({timer: this.state.timer++})
-      }
-    }
   }
 
   keyboardWillShow = async (event) => {
@@ -98,7 +94,6 @@ export default class Login extends Component {
       Animated.timing(this.hatPosY, { duration: event.duration, toValue: 0.3, useNativeDriver: true }),
       Animated.timing(this.hatScale, { duration: event.duration, toValue: 0, useNativeDriver: true })
     ]).start();
-    this.setState({timer: 0});
   }
 
   keyboardWillHide = async (event) => {
@@ -110,11 +105,15 @@ export default class Login extends Component {
   }
 
   showLogin = async () => {
-    Animated.sequence([
-      Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, useNativeDriver: true }),
-      Animated.timing(this.loginAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
-      Animated.timing(this.entrance, { toValue: 1, duration: 500 })
-    ]).start();
+    if(!this.state.animatingEntrance) {
+      this.setState({ animatingEntrance: true });
+      Animated.sequence([
+        Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, useNativeDriver: true }),
+        Animated.timing(this.loginAnim, { toValue: 0, duration: 350, useNativeDriver: true })
+      ]).start(() => {
+        this.setState({ animatingEntrance: false });
+      });
+    }
   }
 
   hideLogin = async () => {

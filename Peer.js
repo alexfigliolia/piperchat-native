@@ -51,7 +51,6 @@ const Peer = {
     });
     Peer.peerConnection.addStream(Peer.localStream);
     Peer.peerConnection.onicecandidate = Peer.onIceCandidate;
-    // Peer.peerConnection.onaddstream = Peer.onAddStream;
     Peer.peerConnection.oniceconnectionstatechange = Peer.onIceStateChange;
     Peer.socket.on('candidate', Peer.onCandidate);
     Peer.socket.on('answer', Peer.onAnswer);

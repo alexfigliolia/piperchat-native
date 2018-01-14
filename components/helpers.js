@@ -2,6 +2,7 @@ import Meteor from 'react-native-meteor';
 import update from 'immutability-helper';
 import Sound from 'react-native-sound';
 import PushNotification from 'react-native-push-notification';
+import Permissions from 'react-native-permissions'
 
 const checkSelfFriend = async (path) =>{
   if(path.users.length > 0) {
@@ -84,10 +85,20 @@ const loadSound = () => {
 }
 
 const sendNotification = async (message) => {
-  PushNotification.localNotificationSchedule({
-    message: `New message from ${message.from.name}`,
-    date: new Date()
-  });
+  Meteor.call('user.get', message.from, (err, res) => {
+    if(err) {
+      console.log(err);
+    } else {
+      PushNotification.localNotificationSchedule({
+        message: `New message from ${res[0].name}`,
+        date: new Date()
+      });
+    }
+  })
+}
+
+const requestPermission = async (feature) => {
+  Permissions.request(feature).then(res => console.log(res));
 }
 
 export { 
@@ -97,5 +108,6 @@ export {
   alphabetize, 
   checkIndexOf,
   loadSound,
-  sendNotification 
+  sendNotification,
+  requestPermission
 }

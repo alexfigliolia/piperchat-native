@@ -78,6 +78,10 @@ export default class Chat extends PureComponent {
 				borderRadius: 50/2,
 				marginRight: 2.5,
 				marginLeft: 2.5,
+				shadowColor: '#000',
+        shadowOffset:{ width: 0,  height: -3 },
+        shadowColor: 'black',
+        shadowOpacity: 0.2,
 			},
 			send: {
 				height: 50,
@@ -87,7 +91,11 @@ export default class Chat extends PureComponent {
 				alignItems: 'center',
 				backgroundColor: '#16B0A5',
 				marginLeft: 2.5,
-				marginRight: 2.5
+				marginRight: 2.5,
+				shadowColor: '#000',
+        shadowOffset:{ width: 0,  height: -3 },
+        shadowColor: 'black',
+        shadowOpacity: 0.2,
 			}
   	});
   	this.chat = new Animated.Value(0);
@@ -103,7 +111,7 @@ export default class Chat extends PureComponent {
     	this.setState({isHidded: false});
     }, 200);
     getMessages(this.props.messages, this.props.id)
-    	.then(m => this.setVisibleMessages(m));
+    	.then(m => this.setState({ visible: m }));
   }
 
   componentWillUnmount = () => {
@@ -114,7 +122,7 @@ export default class Chat extends PureComponent {
   componentWillReceiveProps = (nextProps) => {
   	if(nextProps.id !== null && nextProps.id !== undefined && nextProps.messages.length > 0) {
   		getMessages(nextProps.messages, nextProps.id)	
-  			.then(m => this.setVisibleMessages(m));
+  			.then(m => this.setState({ visible: m }));
   	}	
   	if(this.props.openChats.length < nextProps.openChats.length && this.hideChat._value === this.props.height - 110) {
   		this.toggleChat();
@@ -123,10 +131,6 @@ export default class Chat extends PureComponent {
   		Animated.spring(this.hideChat, {toValue: this.props.height - 110 }).start();
   		this.setState({ isHidden: true });	
   	}
-  }
-
-  setVisibleMessages = (messages) => {
-  	this.setState({ visible: messages });
   }
 
   scrollToBottom = (bool=true) => {
@@ -269,9 +273,7 @@ export default class Chat extends PureComponent {
 	    					renderItem={({item, index}) => 
 	    						<ChatBubble 
 							  		text={item.text}
-							  		from={item.from}
-							  		index={index}
-							  		length={this.state.visible.length} />
+							  		from={item.from} />
 						 			}
 						  	keyExtractor={(item, index) => index}
 						  	removeClippedSubviews={true} />
@@ -283,11 +285,7 @@ export default class Chat extends PureComponent {
 								justifyContent: 'center',
 								alignItems: 'center',
 								flexDirection: 'row',
-								backgroundColor: 'transparent',
-								shadowColor: '#000',
-				        shadowOffset:{ width: 0,  height: -3 },
-				        shadowColor: 'black',
-				        shadowOpacity: 0.2,
+								backgroundColor: '#fff',
 				        marginTop: 5,
 				        transform: [
 				        	{translateY: this.chat.interpolate({

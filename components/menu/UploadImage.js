@@ -104,7 +104,11 @@ export default class UploadImage extends Component {
   	if(progress == 100) this.uploaded();
   }
 
-  uploaded = () => this.setState({ uploading: false }, this.props.closeProfile);
+  uploaded = () => {
+  	setTimeout(() => {
+  		this.setState({ uploading: false, progress: 0 }, this.props.closeProfile);
+  	}, 500);
+  }
 
   render = () => {
     return (

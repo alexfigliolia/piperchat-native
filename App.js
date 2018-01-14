@@ -16,9 +16,12 @@ import {
   alphabetize, 
   checkIndexOf,
   loadSound,
-  sendNotification
+  sendNotification,
+  requestPermission
 } from './components/helpers';
 import { MediaStream, MediaStreamTrack, getUserMedia } from 'react-native-webrtc';
+import Permissions from 'react-native-permissions';
+import PushNotification from 'react-native-push-notification';
 import Login from './components/login/Login';
 import Header from './components/header/Header';
 import Dashboard from './components/dashboard/Dashboard';
@@ -29,7 +32,6 @@ import RemoveFriend from './components/removeFriend/RemoveFriend';
 import Modal from './components/modal/Modal';
 import Chat from './components/chat/Chat';
 import Meteor from 'react-native-meteor';
-import PushNotification from 'react-native-push-notification';
 import StatusBarSizeIOS from 'react-native-status-bar-size';
 import LinearGradient from 'react-native-linear-gradient';
 import Sound from 'react-native-sound';
@@ -94,6 +96,7 @@ export default class App extends Component {
     this.setState({ height, width });
     PushNotification.configure({ 
       onNotification: (notification) => {
+        console.log(notification);
         notification.finish(PushNotificationIOS.FetchResult.NoData);
       } 
     });
@@ -108,7 +111,6 @@ export default class App extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    Keyboard.dismiss();
     console.log(nextProps);
     if(!this.state.rp) this.setState({rp: true});
     if(nextProps.user === null || nextProps.id === null) {
@@ -145,6 +147,10 @@ export default class App extends Component {
     if(budsExist && buds[0].sentRequests.length !== this.state.sentRequests.length) {
       this.fillSentReqs(buds[0].sentRequests);
     }
+    Permissions.checkMultiple(['notification', 'photo']).then(res => {
+      if(res.photo !== 'authorized') requestPermission('photo');
+      if(res.notification !== 'authorized') requestPermission('notification');
+    });
   }
 
   fillContacts = async (arr) => {
@@ -174,7 +180,7 @@ export default class App extends Component {
 
   checkMessages = async (messageList) => {
     const last = messageList[messageList.length - 1];
-    if(last.to._id === Meteor.userId()) sendNotification(last);
+    if(last.to === Meteor.userId()) sendNotification(last);
   }
 
   adjustHeight = (nSBH) => {
@@ -410,7 +416,12 @@ export default class App extends Component {
         Peer.setLocalStream(stream);
         this.initPeer();
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        console.log(err);
+        Meteor.call('user.updatePresence', (err, res) => {
+          if(err) console.log(err);
+        });
+      });
   }
 
   initPeer = () => {
@@ -475,12 +486,12 @@ export default class App extends Component {
   }
 
   terminatePeer = () => {
+    if(Peer.peerConnection) Peer.peerConnection.close();
     this.ring.stop();
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
     this.hideConnecting();
-    if(Peer.peerConnection) Peer.peerConnection.close();
     this.getLocalStream();
   }
 

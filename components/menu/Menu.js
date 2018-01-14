@@ -185,7 +185,10 @@ export default class Menu extends Component {
 
   logout = () => {
   	this.props.openMenu();
-  	setTimeout(() => { Meteor.logout() }, 300);
+  	setTimeout(() => { 
+  		Meteor.logout(); 
+  		Meteor.call('user.removePresence');
+  	}, 300);
   }
 
   measureMCW(e) {
