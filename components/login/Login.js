@@ -21,7 +21,6 @@ export default class Login extends Component {
     this.state = {
       newUser: false,
       error: "",
-      timer: 0,
       animatingEntrance: false
     }
     this.loginAnim = new Animated.Value(0);

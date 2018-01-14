@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { View, Image, TouchableWithoutFeedback, Animated, Text } from 'react-native';
 // import Burger from './Burger';
 import Burg from './Burg';
 
-export default class Header extends Component {
+export default class Header extends PureComponent {
   render = () => {
     return (
     	<View 
