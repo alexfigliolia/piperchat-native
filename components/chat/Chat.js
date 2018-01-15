@@ -22,7 +22,9 @@ export default class Chat extends PureComponent {
   	this.state = {
   		visible: [],
   		isHidden: false,
-  		text: ''
+  		chat: new Animated.Value(0),
+  		hideChat: new Animated.Value(this.props.height - 60),
+  		inputText: ''
   	}
   	this.styles = StyleSheet.create({
   		dismissContainer: {
@@ -51,18 +53,16 @@ export default class Chat extends PureComponent {
         zIndex: 2
 			},
 			headerButtonLeft: {
-				height: 30,
-				width: 30,
-				borderRadius: 30/2,
-				marginLeft: 10,
+				height: 50,
+				width: 50,
+				borderRadius: 50/2,
 				justifyContent: 'center',
 				alignItems: 'center'
 			},
 			headerButtonRight: {
-				height: 30,
-				width: 30,
-				borderRadius: 30/2,
-				marginRight: 10,
+				height: 50,
+				width: 50,
+				borderRadius: 50/2,
 				justifyContent: 'center',
 				alignItems: 'center'
 			},
@@ -98,16 +98,13 @@ export default class Chat extends PureComponent {
         shadowOpacity: 0.2,
 			}
   	});
-  	this.chat = new Animated.Value(0);
-  	this.hideChat = new Animated.Value(this.props.height - 60);
-  	this.inputText = '';
   }
 
   componentDidMount = () => {
     this.keyboardWillShowSub = Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
     this.keyboardWillHideSub = Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
     setTimeout(() => {
-    	Animated.spring(this.hideChat, {toValue: 0 }).start();
+    	Animated.spring(this.state.hideChat, {toValue: 0, useNativeDriver: true }).start();
     	this.setState({isHidded: false});
     }, 200);
     getMessages(this.props.messages, this.props.id)
@@ -124,11 +121,11 @@ export default class Chat extends PureComponent {
   		getMessages(nextProps.messages, nextProps.id)	
   			.then(m => this.setState({ visible: m }));
   	}	
-  	if(this.props.openChats.length < nextProps.openChats.length && this.hideChat._value === this.props.height - 110) {
+  	if(this.props.openChats.length < nextProps.openChats.length && this.state.hideChat._value === this.props.height - 110) {
   		this.toggleChat();
   	}
   	if(nextProps.connectingActive) {
-  		Animated.spring(this.hideChat, {toValue: this.props.height - 110 }).start();
+  		Animated.spring(this.state.hideChat, {toValue: this.props.height - 110, useNativeDriver: true }).start();
   		this.setState({ isHidden: true });	
   	}
   }
@@ -138,40 +135,48 @@ export default class Chat extends PureComponent {
   }
 
   keyboardWillShow = async (event) => {
-    Animated.timing(this.chat, { duration: event.duration, toValue: 1 }).start();
+    Animated.timing(this.state.chat, { duration: event.duration, toValue: 1 }).start();
   }
 
   keyboardWillHide = async (event) => {
-    Animated.timing(this.chat, { duration: event.duration, toValue: 0 }).start();
+    Animated.timing(this.state.chat, { duration: event.duration, toValue: 0 }).start();
   }
 
   closeChat = () => {
   	this.props.closeChat();
   	if(this.props.openChats.length === 0) {
-  		Animated.spring(this.hideChat, {toValue: this.props.height - 60 }).start();
+  		Animated.spring(this.state.hideChat, {toValue: this.props.height - 60, useNativeDriver: true }).start();
     	this.setState({ isHidded: false });
   	}
   }
 
   toggleChat = () => {
   	if(this.state.isHidden) {
-  		Animated.spring(this.hideChat, {toValue: 0 }).start();
+  		Animated.spring(this.state.hideChat, {toValue: 0, useNativeDriver: true }).start();
   		this.setState({isHidden: false});
   	} else {
-  		Animated.spring(this.hideChat, {toValue: this.props.height - 110 }).start();
+  		Animated.spring(this.state.hideChat, {toValue: this.props.height - 110, useNativeDriver: true }).start();
   		this.setState({isHidden: true});
   	}
   	Keyboard.dismiss();
   }
 
+  headerPressed = () => {
+  	if(this.state.isHidden) {
+  		Animated.spring(this.state.hideChat, {toValue: 0, useNativeDriver: true }).start();
+  		this.setState({isHidden: false});
+  	}
+  }
+
   sendMessage = () => {
-  	if(this.inputText !== '') {
-  		Meteor.call('message.send', this.props.id, this.inputText, (error, result) => {
+  	const { inputText } = this.state;
+  	const text = inputText.trim();
+  	if(text !== '') {
+  		Meteor.call('message.send', this.props.id, text, (error, result) => {
 	      if(error) {
 	        console.log(error);
 	      } else {
-	        this.inputText = '';
-	        this.messager.clear();
+	        this.setState({ inputText: '' });
 	        Meteor.call('user.addNew', this.props.id, (err, res) => {
 	        	if(err) console.log(err);
 	        });
@@ -202,7 +207,7 @@ export default class Chat extends PureComponent {
 	  			justifyContent: 'center',
 	  			alignItems: 'center',
 	  			transform: [
-	  				{ translateY: this.hideChat }
+	  				{ translateY: this.state.hideChat }
 	  			]
 	  		}}>
     		<KeyboardAvoidingView
@@ -211,44 +216,48 @@ export default class Chat extends PureComponent {
     			style={this.styles.dismissContainer}>
     			<View
     				style={this.styles.center}>
-    				<View style={this.styles.header}>
-    					<TouchableOpacity
-    						onPress={this.closeChat}
-    						style={this.styles.headerButtonLeft}>
-    						<Image 
-    							style={{
-    								height: 17.5,
-    								width: 17.5,
-    							}}
-    							source={require('../../public/close1.png')} />
-    					</TouchableOpacity>
-    					<Text
-    						style={{
-    							color: '#fff',
-    							fontSize: 18,
-    							fontWeight: '200'
-    						}}>{this.props.name}</Text>
-    					<TouchableOpacity
-    						onPress={this.toggleChat}
-    						style={this.styles.headerButtonRight}>
-    						<Image 
-    							style={{
-    								height: 22.5,
-    								width: 22.5,
-    							}}
-    							source={this.state.isHidden ? require('../../public/up.png') : require('../../public/down-arrow.png')} />
-    					</TouchableOpacity>
-    				</View>
+    				<TouchableWithoutFeedback 
+    					style={this.styles.header}
+    					onPress={this.headerPressed}>
+    					<View style={this.styles.header}>
+    						<TouchableOpacity
+	    						onPress={this.closeChat}
+	    						style={this.styles.headerButtonLeft}>
+	    						<Image 
+	    							style={{
+	    								height: 17.5,
+	    								width: 17.5,
+	    							}}
+	    							source={require('../../public/close1.png')} />
+	    					</TouchableOpacity>
+	    					<Text
+	    						style={{
+	    							color: '#fff',
+	    							fontSize: 18,
+	    							fontWeight: '200'
+	    						}}>{this.props.name}</Text>
+	    					<TouchableOpacity
+	    						onPress={this.toggleChat}
+	    						style={this.styles.headerButtonRight}>
+	    						<Image 
+	    							style={{
+	    								height: 22.5,
+	    								width: 22.5,
+	    							}}
+	    							source={this.state.isHidden ? require('../../public/up.png') : require('../../public/down-arrow.png')} />
+	    					</TouchableOpacity>
+    					</View>
+    				</TouchableWithoutFeedback>
     				<Animated.View
     					style={{
 								flex: 1,
-								height: this.chat.interpolate({
+								height: this.state.chat.interpolate({
 		        			inputRange: [0, 1],
 		        			outputRange: [this.props.height - 165, this.props.height - 215]
 		        		}),
 								width: '100%',
 								transform: [
-				        	{translateY: this.chat.interpolate({
+				        	{translateY: this.state.chat.interpolate({
 				        			inputRange: [0, 1],
 				        			outputRange: [this.props.inCall ? -20 : 0, this.props.inCall ? -80 : -60]
 				        		})
@@ -288,7 +297,7 @@ export default class Chat extends PureComponent {
 								backgroundColor: '#fff',
 				        marginTop: 5,
 				        transform: [
-				        	{translateY: this.chat.interpolate({
+				        	{translateY: this.state.chat.interpolate({
 				        			inputRange: [0, 1],
 				        			outputRange: [this.props.inCall ? -20 : 0, this.props.inCall ? -80 : -60]
 				        		})
@@ -301,15 +310,13 @@ export default class Chat extends PureComponent {
 								placeholder="Message" 
 								multiline={true}
 								onFocus={this.checkUnread}
-								onChangeText={(text) => this.inputText = text} />
+								onChangeText={(text) => this.setState({inputText: text})}
+								value={this.state.inputText} />
 							<TouchableOpacity
 								onPress={this.sendMessage}
 								style={this.styles.send}>
 									<Image 
-										style={{
-											height: 22.5,
-											width: 22.5
-										}}
+										style={{ height: 22.5, width: 22.5 }}
 										source={require('../../public/sent.png')} />
 								</TouchableOpacity>
 						</Animated.View>	

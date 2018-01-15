@@ -19,11 +19,11 @@ export default class Menu extends Component {
     this.state = { 
     	text: '',
     	showProfile: false,
-    	MCW: 300
+    	MCW: 300,
+    	inputAnim: new Animated.Value(0),
+    	textAnim: new Animated.Value(0),
+    	imageAnim: new Animated.Value(0)
    	}
-   	this.inputAnim = new Animated.Value(0);
-   	this.textAnim = new Animated.Value(0);
-   	this.imageAnim = new Animated.Value(0);
    	this.styles = StyleSheet.create({
 		  container: {
 		    backgroundColor: '#E3EBF0',
@@ -80,7 +80,7 @@ export default class Menu extends Component {
 				marginBottom: 15,
 				transform: [
 					{translateX: 
-						this.textAnim.interpolate({
+						this.state.textAnim.interpolate({
 							inputRange: [0, 1],
               outputRange: [ 0, this.state.MCW * -1 ],
             })
@@ -96,7 +96,7 @@ export default class Menu extends Component {
 				width: '100%',
 				transform: [
 					{translateX: 
-						this.inputAnim.interpolate({
+						this.state.inputAnim.interpolate({
 							inputRange: [0, 1],
               outputRange: [ this.state.MCW, 0 ],
             })
@@ -152,19 +152,20 @@ export default class Menu extends Component {
   		let val;
   		if(prevState.showProfile) { val = 0 } else { val = 1 }
 			Animated.parallel([
-				Animated.spring(this.inputAnim, { toValue: val, useNativeDriver: true }),
-    		Animated.spring(this.textAnim, { toValue: val, useNativeDriver: true }),
-    		Animated.spring(this.imageAnim, { toValue: val, useNativeDriver: true })
-			]).start(() => { Keyboard.dismiss() });
+				Animated.spring(this.state.inputAnim, { toValue: val, useNativeDriver: true }),
+    		Animated.spring(this.state.textAnim, { toValue: val, useNativeDriver: true }),
+    		Animated.spring(this.state.imageAnim, { toValue: val, useNativeDriver: true })
+			]).start();
+			if(val === 1) Keyboard.dismiss();
   		return { showProfile: !prevState.showProfile }
   	});
   }
 
   closeProfile = () => {
   	Animated.parallel([
-  		Animated.spring(this.inputAnim, { toValue: 0, useNativeDriver: true }),
-    	Animated.spring(this.textAnim, { toValue: 0, useNativeDriver: true }),
-    	Animated.spring(this.imageAnim, { toValue: 0, useNativeDriver: true })
+  		Animated.spring(this.state.inputAnim, { toValue: 0, useNativeDriver: true }),
+    	Animated.spring(this.state.textAnim, { toValue: 0, useNativeDriver: true }),
+    	Animated.spring(this.state.imageAnim, { toValue: 0, useNativeDriver: true })
   	]).start(() => {
   		this.setState({ showProfile: false }, Keyboard.dismiss);
   	});
@@ -178,8 +179,14 @@ export default class Menu extends Component {
  				} else { 
  					this.editProfile();
  					this.setState({text: ''});
+ 					Keyboard.dismiss();
  				}
  			});
+  	}
+  	if(this.state.text === this.props.user.name) {
+  		this.editProfile();
+  		this.setState({text: ''});
+  		Keyboard.dismiss();
   	}
   }
 
@@ -191,9 +198,7 @@ export default class Menu extends Component {
   	}, 300);
   }
 
-  measureMCW(e) {
-  	this.setState({ MCW: e.nativeEvent.layout.width });
-  }
+  measureMCW = (e) => this.setState({ MCW: e.nativeEvent.layout.width });
 
   render = () => {
     return (
@@ -209,7 +214,7 @@ export default class Menu extends Component {
 	    				<UploadImage
 	    					user={this.props.user}
 	    					image={this.props.user.image}
-	    					imageAnim={this.imageAnim}
+	    					imageAnim={this.state.imageAnim}
 	    					editProfile={this.editProfile}
 	    					showProfile={this.state.showProfile}
 	    					closeProfile={this.closeProfile} />

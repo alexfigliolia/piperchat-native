@@ -22,9 +22,9 @@ export default class ReportAbuse extends Component {
 			text: '',
 			selected: '',
 			friends: this.props.friends,
-			RFCW: 300
+			RFCW: 300,
+			push: new Animated.Value(0)
 		}
-		this.push = new Animated.Value(0);
 		this.styles = StyleSheet.create({
 			avatar: {
 				width: 40,
@@ -48,7 +48,7 @@ export default class ReportAbuse extends Component {
 		});
 	}
 
-	componentWillReceiveProps(nextProps) {
+	componentWillReceiveProps = (nextProps) => {
 		if(nextProps.friends !== this.props.friends) {
 			this.setState({friends: nextProps.friends});
 		}
@@ -56,12 +56,12 @@ export default class ReportAbuse extends Component {
 
 	selectFriend = (e, item) => {
 		this.setState({selected: item});
-		Animated.spring(this.push, { toValue: 1 }).start();
+		Animated.spring(this.state.push, { toValue: 1, useNativeDriver: true }).start();
 	}
 
 	closeConfirmation = () => {
 		this.setState({selected: ''});
-		Animated.spring(this.push, { toValue: 0 }).start();
+		Animated.spring(this.state.push, { toValue: 0, useNativeDriver: true }).start();
 	}
 
 	removeFriend = () => {
@@ -88,9 +88,7 @@ export default class ReportAbuse extends Component {
 		}
 	}
 
-	measureRFCW = (e) => {
-		this.setState({ RFCW: e.nativeEvent.layout.width });
-	}
+	measureRFCW = (e) => this.setState({ RFCW: e.nativeEvent.layout.width });
 
 	render = () => {
     return (
@@ -124,7 +122,7 @@ export default class ReportAbuse extends Component {
 	    				alignItems: 'center',
 	    				transform: 
 	            [
-	            	{ translateY: this.push.interpolate({
+	            	{ translateY: this.state.push.interpolate({
 		                inputRange: [0, 1],
 		                outputRange: [ 0, 150 ],
 		              })

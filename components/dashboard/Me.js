@@ -10,8 +10,8 @@ export default class Me extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-        pan: new Animated.ValueXY(),
-        scale: new Animated.Value(1)
+      pan: new Animated.ValueXY(),
+      scale: new Animated.Value(1)
     }
     this.panResponder = null;
 	}
@@ -24,31 +24,20 @@ export default class Me extends Component {
       onPanResponderGrant: (e, gesture) => {
         const x = this.getXBound();
         const y = this.getYBound();
-        this.state.pan.setOffset({
-          x: x, 
-          y: y
-        });
+        this.state.pan.setOffset({ x: x, y: y });
         this.state.pan.setValue({x: 0, y: 0});
         Animated.spring(this.state.scale, { toValue: 1.1 }).start();
       },
       onPanResponderMove: Animated.event([null,{
-          dx : this.state.pan.x,
-          dy : this.state.pan.y
+        dx : this.state.pan.x,
+        dy : this.state.pan.y
       }]),
       onPanResponderRelease: (e, {vx, vy}) => {
         this.state.pan.flattenOffset();
         const x = this.getXBound();
         const y = this.getYBound();
         Animated.spring(this.state.scale, { toValue: 1 }).start();
-        Animated.spring(
-          this.state.pan,
-          {
-            toValue: {
-              x: x,
-              y: y
-            }
-          }
-        ).start();
+        Animated.spring(this.state.pan, { toValue: { x: x, y: y } }).start();
       }
     });
   }
@@ -61,7 +50,7 @@ export default class Me extends Component {
           y: ((this.props.height - 55) - (this.props.height/4) ) * -1
         },
         duration: 300,
-        delay: 500
+        delay: 500,
       }).start();
     }
   }

@@ -66,24 +66,22 @@ export default class App extends Component {
       unread: [],
       local: null,
       remote: null,
-      canMakeCalls: false
+      canMakeCalls: false,
+      menuAnim: new Animated.Value(0),
+      menuMove: new Animated.Value(0),
+      raAnim: new Animated.Value(0),
+      rfAnim: new Animated.Value(0),
+      friendsAnim: new Animated.Value(0),
+      modalAnim: new Animated.Value(0),
+      body: new Animated.Value(1),
+      scale: new Animated.Value(0),
+      dim: new Animated.Value(0),
+      with: new Animated.Value(0),
+      hangUp: new Animated.Value(0),
+      accept: new Animated.Value(0),
+      errorScale: new Animated.Value(0),
+      errorTranslate: new Animated.Value(0),
     }
-    this.width = null,
-    this.height = null,
-    this.menuAnim = new Animated.Value(0);
-    this.menuMove = new Animated.Value(0);
-    this.raAnim = new Animated.Value(0);
-    this.rfAnim = new Animated.Value(0);
-    this.friendsAnim = new Animated.Value(0);
-    this.modalAnim = new Animated.Value(0);
-    this.body = new Animated.Value(1);
-    this.scale = new Animated.Value(0);
-    this.dim = new Animated.Value(0);
-    this.with = new Animated.Value(0);
-    this.hangUp = new Animated.Value(0);
-    this.accept = new Animated.Value(0);
-    this.errorScale = new Animated.Value(0);
-    this.errorTranslate = new Animated.Value(0);
     this.ring = null;
     this.appState = null;
   }
@@ -92,7 +90,6 @@ export default class App extends Component {
 
   componentDidMount = () => {
     const {height, width} = Dimensions.get('window');
-    this.width = width;
     this.setState({ height, width });
     PushNotification.configure({ 
       onNotification: (notification) => {
@@ -173,6 +170,7 @@ export default class App extends Component {
 
   handleStateChange = (nextState) => {
     if(this.appState === 'inactive' && nextState === 'active') {
+      this.terminatePeer();
       this.getLocalStream();
     }
     this.appState = nextState;
@@ -203,11 +201,11 @@ export default class App extends Component {
     } else {
       this.setState(prevState => {
         if(prevState.menuActive === 0) {
-          Animated.spring(this.menuAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 12.5 }).start();
-          Animated.timing(this.body, { toValue: 0, useNativeDriver: true, duration: 200 }).start();
+          Animated.spring(this.state.menuAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 12.5 }).start();
+          Animated.timing(this.state.body, { toValue: 0, useNativeDriver: true, duration: 200 }).start();
         } else {
-          Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 12.5 }).start();
-          Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 }).start();
+          Animated.spring(this.state.menuAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 12.5 }).start();
+          Animated.timing(this.state.body, { toValue: 1, useNativeDriver: true, duration: 125 }).start();
         }
         return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
       });
@@ -218,13 +216,13 @@ export default class App extends Component {
   openReportAbuse = async () => {
     if(this.state.reportAbuseActive === 0) {
       Animated.parallel([
-        Animated.spring(this.raAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }),
-        Animated.timing(this.menuMove, { toValue: 1, duration: 250, useNativeDriver: true })
+        Animated.spring(this.state.raAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }),
+        Animated.timing(this.state.menuMove, { toValue: 1, duration: 250, useNativeDriver: true })
       ]).start();
     } else {
       Animated.parallel([
-        Animated.spring(this.raAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 11 }),
-        Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true })
+        Animated.spring(this.state.raAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 11 }),
+        Animated.spring(this.state.menuMove, { toValue: 0, useNativeDriver: true })
       ]).start();
     }
     this.setState(prevState => {
@@ -234,11 +232,11 @@ export default class App extends Component {
 
   openRemoveFriend = async () => {
     if(this.state.removeFriendActive === 0) {
-      Animated.spring(this.rfAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }).start();
-      Animated.timing(this.menuMove, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+      Animated.spring(this.state.rfAnim, { toValue: 1, useNativeDriver: true, tension: 120, friction: 11 }).start();
+      Animated.timing(this.state.menuMove, { toValue: 1, duration: 250, useNativeDriver: true }).start();
     } else {
-      Animated.spring(this.rfAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 11 }).start();
-      Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
+      Animated.spring(this.state.rfAnim, { toValue: 0, useNativeDriver: true, tension: 120, friction: 11 }).start();
+      Animated.spring(this.state.menuMove, { toValue: 0, useNativeDriver: true }).start();
     }
     this.setState(prevState => {
       return { removeFriendActive: prevState.removeFriendActive == 0 ? 1 : 0 }
@@ -251,11 +249,11 @@ export default class App extends Component {
     if(this.state.menuActive === 1) this.openMenu();
     if(this.state.modalActive === 1) this.toggleChatOptions();
     if(this.state.friendListActive === 0) {
-      Animated.spring(this.friendsAnim, {toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
-      Animated.timing(this.body, { toValue: 2, useNativeDriver: true, duration: 200 }).start();
+      Animated.spring(this.state.friendsAnim, {toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
+      Animated.timing(this.state.body, { toValue: 2, useNativeDriver: true, duration: 200 }).start();
     } else {
-      Animated.spring(this.friendsAnim, {toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
-      Animated.timing(this.body, { toValue: 1, useNativeDriver: true, duration: 125 }).start();
+      Animated.spring(this.state.friendsAnim, {toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5 }).start();
+      Animated.timing(this.state.body, { toValue: 1, useNativeDriver: true, duration: 125 }).start();
     }
     this.setState(prevState => {
       return {
@@ -263,24 +261,24 @@ export default class App extends Component {
       }
     });
     Keyboard.dismiss();
-    if(this.modalAnim._value === 1) {
-      Animated.spring(this.modalAnim, { toValue: 0, useNativeDriver: true }).start();
+    if(this.state.modalAnim._value === 1) {
+      Animated.spring(this.state.modalAnim, { toValue: 0, useNativeDriver: true }).start();
     }
   }
 
   closeMenuAndRemoveFriend = async () => {
-    Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
-    Animated.spring(this.rfAnim, { toValue: 0, useNativeDriver: true }).start();
-    Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
+    Animated.spring(this.state.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
+    Animated.spring(this.state.rfAnim, { toValue: 0, useNativeDriver: true }).start();
+    Animated.spring(this.state.menuMove, { toValue: 0, useNativeDriver: true }).start();
     this.setState(prevState => {
       return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
     });
   }
 
   closeMenuAndReportAbuse = async () => {
-    Animated.spring(this.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
-    Animated.spring(this.raAnim, { toValue: 0, useNativeDriver: true }).start();
-    Animated.spring(this.menuMove, { toValue: 0, useNativeDriver: true }).start();
+    Animated.spring(this.state.menuAnim, { toValue: 0, useNativeDriver: true, tension: 100, friction: 10 }).start();
+    Animated.spring(this.state.raAnim, { toValue: 0, useNativeDriver: true }).start();
+    Animated.spring(this.state.menuMove, { toValue: 0, useNativeDriver: true }).start();
     this.setState(prevState => {
       return { menuActive: prevState.menuActive == 0 ? 1 : 0 }
     });
@@ -291,10 +289,10 @@ export default class App extends Component {
       this.setState({currentFriendSelection: person});
     }
     if(this.state.modalActive === 0) {
-      Animated.spring(this.modalAnim, { toValue: 1, useNativeDriver: true }).start();
+      Animated.spring(this.state.modalAnim, { toValue: 1, useNativeDriver: true }).start();
       this.setState({ modalActive: 1 });
     } else {
-      Animated.spring(this.modalAnim, { toValue: 0, useNativeDriver: true }).start();
+      Animated.spring(this.state.modalAnim, { toValue: 0, useNativeDriver: true }).start();
       this.setState({ modalActive: 0});
     }
   }
@@ -331,35 +329,36 @@ export default class App extends Component {
 
   displayConnecting = async () => {
     Animated.parallel([
-      Animated.timing(this.scale, { toValue: 1, duration: 0, useNativeDriver: true }),
-      Animated.timing(this.dim, { toValue: 1, duration: 300 }),
-      Animated.spring(this.with, { toValue: 1, delay: 500, useNativeDriver: true }),
-      Animated.spring(this.hangUp, { toValue: 1, delay: 700, tension: 5, friction: 4.5, useNativeDriver: true }),
-      Animated.spring(this.accept, { toValue: 1, delay: 800, tension: 5, friction: 4.5, useNativeDriver: true })
+      Animated.timing(this.state.scale, { toValue: 1, duration: 0, useNativeDriver: true }),
+      Animated.timing(this.state.dim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.spring(this.state.with, { toValue: 1, delay: 500, useNativeDriver: true }),
+      Animated.spring(this.state.hangUp, { toValue: 1, delay: 700, tension: 5, friction: 4.5, useNativeDriver: true }),
+      Animated.spring(this.state.accept, { toValue: 1, delay: 800, tension: 5, friction: 4.5, useNativeDriver: true })
     ]).start();
     this.setState({ connectingActive: true });
   }
 
   hideConnecting = async () => {
     Animated.parallel([
-      Animated.spring(this.accept, { toValue: 0, tension: 5, friction: 4.5, useNativeDriver: true }),
-      Animated.spring(this.hangUp, { toValue: 0, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
-      Animated.spring(this.with, { toValue: 0, delay: 300, useNativeDriver: true }),
-      Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 500 }),
-      Animated.timing(this.scale, { toValue: 0, duration: 0, delay: 800, useNativeDriver: true })
+      Animated.spring(this.state.accept, { toValue: 0, tension: 5, friction: 4.5, useNativeDriver: true }),
+      Animated.spring(this.state.hangUp, { toValue: 0, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
+      Animated.spring(this.state.with, { toValue: 0, delay: 300, useNativeDriver: true }),
+      Animated.timing(this.state.dim, { toValue: 0, duration: 300, delay: 500, useNativeDriver: true }),
+      Animated.timing(this.state.scale, { toValue: 0, duration: 0, delay: 800, useNativeDriver: true })
     ]).start(() => {
-      this.setState({initializingCall: false});
+      this.setState({initializingCall: false, connectingActive: false, remote: this.state.local}, () => {
+        this.ring.stop();
+        this.getLocalStream();
+      });
     });
-    this.setState({ connectingActive: false });
-    this.ring.stop();
   }
 
   callInProgress = async () => {
     Animated.parallel([
-      Animated.spring(this.hangUp, { toValue: 1, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
-      Animated.spring(this.with, { toValue: 0, delay: 300, useNativeDriver: true }),
-      Animated.timing(this.dim, { toValue: 0, duration: 300, delay: 0 }),
-    ]).start();
+      Animated.spring(this.state.hangUp, { toValue: 1, tension: 5, friction: 4.5, delay: 100, useNativeDriver: true }),
+      Animated.spring(this.state.with, { toValue: 0, delay: 300, useNativeDriver: true }),
+      Animated.timing(this.state.dim, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
+    ]).start(() => {this.ring.stop()});
   }
 
   openCall = () => {
@@ -436,7 +435,7 @@ export default class App extends Component {
       this.offer = offer;
     });
     this.socket.on('accepted', (id) => {
-      console.log('offer was accepted');
+      console.log('offer was accepted', id);
       Peer.accepted = true;
       Meteor.call('user.getPeerId', id, (err, res) => {
         if(err) { console.log(err) } else { Peer.startCall(res) }
@@ -458,7 +457,7 @@ export default class App extends Component {
     this.socket.on("connect_failed", () => this.setState({canMakeCalls: false}));
     this.socket.on('disconnect', () => this.setState({canMakeCalls: false}));
     this.socket.on('remoteStream', (stream) => {
-      console.log('receiving remote stream');
+      console.log('receiving remote stream', stream);
       this.setState({ remote: stream.toURL() });
     });
     this.socket.on('endChat', (res) => this.terminatePeer());
@@ -487,26 +486,24 @@ export default class App extends Component {
 
   terminatePeer = () => {
     if(Peer.peerConnection) Peer.peerConnection.close();
-    this.ring.stop();
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
     this.hideConnecting();
-    this.getLocalStream();
   }
 
   displayConnectionError = (err) => {
     this.setState({connectionError: err});
     Animated.parallel([
-      Animated.spring(this.errorScale, {toValue: 1}),
-      Animated.spring(this.errorTranslate, {toValue: 1})
+      Animated.spring(this.state.errorScale, {toValue: 1, useNativeDriver: true}),
+      Animated.spring(this.state.errorTranslate, {toValue: 1, useNativeDriver: true})
     ]).start();
   }
 
   dismissConnectionError = () => {
     Animated.parallel([
-      Animated.spring(this.errorScale, {toValue: 0}),
-      Animated.spring(this.errorTranslate, {toValue: 0})
+      Animated.spring(this.state.errorScale, {toValue: 0, useNativeDriver: true}),
+      Animated.spring(this.state.errorTranslate, {toValue: 0, useNativeDriver: true})
     ]).start(() => {
       this.endCall();
     });
@@ -531,7 +528,7 @@ export default class App extends Component {
             this.state.rp &&
             <Login 
               user={this.state.user}
-              width={this.width}
+              width={this.state.width}
               height={this.state.height}
               loggedIn={this.state.loggedIn} />
           }
@@ -569,15 +566,15 @@ export default class App extends Component {
             this.state.loggedIn &&
             <Dashboard 
               height={this.state.height}
-              anim={this.body}
+              anim={this.state.body}
               width={this.state.width}
               local={this.state.local}
               remote={this.state.remote}
-              scale={this.scale}
-              dim={this.dim}
-              with={this.with}
-              acceptAnim={this.accept}
-              hangUpAnim={this.hangUp}
+              scale={this.state.scale}
+              dim={this.state.dim}
+              with={this.state.with}
+              acceptAnim={this.state.accept}
+              hangUpAnim={this.state.hangUp}
               endCall={this.endCall}
               acceptCall={this.acceptCall}
               hideConnecting={this.hideConnecting}
@@ -586,8 +583,8 @@ export default class App extends Component {
               getLocalStream={this.getLocalStream}
               initPeer={this.initPeer}
               connectionError={this.state.connectionError}
-              errorScale={this.errorScale}
-              errorTranslate={this.errorTranslate}
+              errorScale={this.state.errorScale}
+              errorTranslate={this.state.errorTranslate}
               dismissConnectionError={this.dismissConnectionError} />
           }
 
@@ -597,8 +594,8 @@ export default class App extends Component {
               height={this.state.height}
               user={this.state.user}
               active={this.state.menuActive}
-              menuAnim={this.menuAnim}
-              menuMove={this.menuMove}
+              menuAnim={this.state.menuAnim}
+              menuMove={this.state.menuMove}
               openRA={this.openReportAbuse}
               openRF={this.openRemoveFriend}
               openMenu={this.openMenu}/>
@@ -608,7 +605,7 @@ export default class App extends Component {
             this.state.loggedIn &&
             <ReportAbuse
               height={this.state.height}
-              raAnim={this.raAnim}
+              raAnim={this.state.raAnim}
               openRA={this.openReportAbuse} />
           }
 
@@ -617,7 +614,7 @@ export default class App extends Component {
             <RemoveFriend
               height={this.state.height}
               friends={this.state.friends}
-              rfAnim={this.rfAnim}
+              rfAnim={this.state.rfAnim}
               openRF={this.openRemoveFriend} />
           }
 
@@ -630,13 +627,13 @@ export default class App extends Component {
               sentRequests={this.state.sentRequests}
               users={this.state.users}
               states={this.props.states}
-              anim={this.friendsAnim}
+              anim={this.state.friendsAnim}
               toggleChatOptions={this.toggleChatOptions}
               unread={this.state.unread} />
           }
 
           <Modal 
-            anim={this.modalAnim}
+            anim={this.state.modalAnim}
             toggleChatOptions={this.toggleChatOptions}
             openChat={this.openChat}
             openCall={this.openCall}

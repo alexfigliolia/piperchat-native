@@ -48,10 +48,10 @@ const getMessages = async (messages, id) => {
     const mes = messages[i];
     if(mes.from === id || mes.to === id) m.push(mes);
   }
-  return m.length >= 65 ? m.slice(m.length - 65).reverse() : m.reverse();
+  return m.reverse();
 }
 
-function alphabetize(arr=[]){
+const alphabetize = (arr=[]) => {
 	return arr.sort((a, b) => {
     if(a.name < b.name) return -1;
     if(a.name > b.name) return 1;
@@ -78,7 +78,7 @@ const loadSound = () => {
       console.log('failed to load the sound', error);
       return;
     }
-    sound.setVolume(1);
+    if(sound) sound.setVolume(1);
     console.log('duration in seconds: ' + sound.getDuration() + 'number of channels: ' + sound.getNumberOfChannels());
   });
   return sound;
@@ -109,5 +109,5 @@ export {
   checkIndexOf,
   loadSound,
   sendNotification,
-  requestPermission
+  requestPermission,
 }

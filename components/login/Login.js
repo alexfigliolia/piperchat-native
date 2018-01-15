@@ -21,24 +21,24 @@ export default class Login extends Component {
     this.state = {
       newUser: false,
       error: "",
-      animatingEntrance: false
+      animatingEntrance: false,
+      loginAnim: new Animated.Value(0),
+      buttonAnim: new Animated.Value(300),
+      borderRadius: new Animated.Value(2),
+      opacity: new Animated.Value(1),
+      scale: new Animated.Value(0),
+      fontSize: new Animated.Value(0),
+      check: new Animated.Value(0),
+      collapse: new Animated.Value(0),
+      hatPosY: new Animated.Value(1),
+      hatPosX: new Animated.Value(0),
+      hatScale: new Animated.Value(0.5),
+      hatRotate: new Animated.Value(0),
+      textPosX: new Animated.Value(0),
+      inputPosX: new Animated.Value(0),
+      buttonPosX: new Animated.Value(0),
+      toggleOptionPosX: new Animated.Value(0)
     }
-    this.loginAnim = new Animated.Value(0);
-    this.buttonAnim = new Animated.Value(300);
-    this.borderRadius = new Animated.Value(2);
-    this.opacity = new Animated.Value(1);
-    this.scale = new Animated.Value(0);
-    this.fontSize = new Animated.Value(0);
-    this.check = new Animated.Value(0);
-    this.collapse = new Animated.Value(0);
-    this.hatPosY = new Animated.Value(1);
-    this.hatPosX = new Animated.Value(0);
-    this.hatScale = new Animated.Value(0.5);
-    this.hatRotate = new Animated.Value(0);
-    this.textPosX = new Animated.Value(0);
-    this.inputPosX = new Animated.Value(0);
-    this.buttonPosX = new Animated.Value(0);
-    this.toggleOptionPosX = new Animated.Value(0);
     this.styles = StyleSheet.create({
       container2: {
         flex: 1,
@@ -89,17 +89,17 @@ export default class Login extends Component {
 
   keyboardWillShow = async (event) => {
     Animated.parallel([
-      Animated.timing(this.fontSize, { duration: event.duration, toValue: 1, useNativeDriver: true }),
-      Animated.timing(this.hatPosY, { duration: event.duration, toValue: 0.3, useNativeDriver: true }),
-      Animated.timing(this.hatScale, { duration: event.duration, toValue: 0, useNativeDriver: true })
+      Animated.timing(this.state.fontSize, { duration: event.duration, toValue: 1, useNativeDriver: true }),
+      Animated.timing(this.state.hatPosY, { duration: event.duration, toValue: 0.3, useNativeDriver: true }),
+      Animated.timing(this.state.hatScale, { duration: event.duration, toValue: 0, useNativeDriver: true })
     ]).start();
   }
 
   keyboardWillHide = async (event) => {
     Animated.parallel([
-      Animated.timing(this.fontSize, { duration: event.duration, toValue: 0, useNativeDriver: true }),
-      Animated.timing(this.hatPosY, { duration: event.duration, toValue: 0, useNativeDriver: true }),
-      Animated.timing(this.hatScale, { duration: event.duration, toValue: 0.5, useNativeDriver: true })
+      Animated.timing(this.state.fontSize, { duration: event.duration, toValue: 0, useNativeDriver: true }),
+      Animated.timing(this.state.hatPosY, { duration: event.duration, toValue: 0, useNativeDriver: true }),
+      Animated.timing(this.state.hatScale, { duration: event.duration, toValue: 0.5, useNativeDriver: true })
     ]).start();
   }
 
@@ -107,8 +107,8 @@ export default class Login extends Component {
     if(!this.state.animatingEntrance) {
       this.setState({ animatingEntrance: true });
       Animated.sequence([
-        Animated.timing(this.collapse, { toValue: 0, duration: 0, delay: 0, useNativeDriver: true }),
-        Animated.timing(this.loginAnim, { toValue: 0, duration: 350, useNativeDriver: true })
+        Animated.timing(this.state.collapse, { toValue: 0, duration: 0, delay: 0, useNativeDriver: true }),
+        Animated.timing(this.state.loginAnim, { toValue: 0, duration: 350, useNativeDriver: true })
       ]).start(() => {
         this.setState({ animatingEntrance: false });
       });
@@ -117,36 +117,36 @@ export default class Login extends Component {
 
   hideLogin = async () => {
     Animated.sequence([
-      Animated.timing(this.loginAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
-      Animated.timing(this.collapse, { toValue: 1, duration: 0, useNativeDriver: true })
+      Animated.timing(this.state.loginAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      Animated.timing(this.state.collapse, { toValue: 1, duration: 0, useNativeDriver: true })
     ]).start();
   }
 
   animateEntrance = async () => {
     Animated.sequence([
-      Animated.spring(this.hatPosX, {toValue: 1, tension: 60, useNativeDriver: true }),
-      Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDriver: true }),
-      Animated.spring(this.hatScale, {toValue: 0.5, tension: 60, useNativeDriver: true }),
+      Animated.spring(this.state.hatPosX, {toValue: 1, tension: 100, useNativeDriver: true }),
+      Animated.spring(this.state.hatScale, {toValue: 1, tension: 100, useNativeDriver: true }),
+      Animated.spring(this.state.hatScale, {toValue: 0.5, tension: 100, useNativeDriver: true }),
       Animated.parallel([
-        Animated.spring(this.hatScale, {toValue: 1, tension: 60, useNativeDriver: true }),
-        Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDriver: true }),
-        Animated.spring(this.textPosX, {toValue: 1 })
+        Animated.spring(this.state.hatScale, {toValue: 1, tension: 100, useNativeDriver: true }),
+        Animated.spring(this.state.hatRotate, {toValue: 1, tension: 100, useNativeDriver: true }),
+        Animated.spring(this.state.textPosX, {toValue: 1 })
       ]),
       Animated.parallel([
-        Animated.spring(this.hatScale, {toValue: 0.5, useNativeDriver: true }),
-        Animated.spring(this.hatRotate, {toValue: 0, useNativeDriver: true }),
-        Animated.spring(this.hatPosY, {toValue: 0, useNativeDriver: true }),
-        Animated.spring(this.inputPosX, {toValue: 1, useNativeDriver: true }),
-        Animated.spring(this.buttonPosX, {toValue: 1 }),
-        Animated.spring(this.toggleOptionPosX, {toValue: 1 }),
+        Animated.spring(this.state.hatScale, {toValue: 0.5, useNativeDriver: true }),
+        Animated.spring(this.state.hatRotate, {toValue: 0, useNativeDriver: true }),
+        Animated.spring(this.state.hatPosY, {toValue: 0, useNativeDriver: true }),
+        Animated.spring(this.state.inputPosX, {toValue: 1, useNativeDriver: true }),
+        Animated.spring(this.state.buttonPosX, {toValue: 1 }),
+        Animated.spring(this.state.toggleOptionPosX, {toValue: 1 }),
       ]),
     ]).start();
   }
 
   enterApp = async () => {
     Animated.parallel([
-      Animated.spring(this.hatScale, {toValue: 10, tension: 60, useNativeDriver: true }),
-      Animated.spring(this.hatRotate, {toValue: 1, tension: 60, useNativeDriver: true }),
+      Animated.spring(this.state.hatScale, {toValue: 10, tension: 100, useNativeDriver: true }),
+      Animated.spring(this.state.hatRotate, {toValue: 1, tension: 100, useNativeDriver: true }),
     ]).start();
   }
 
@@ -161,17 +161,14 @@ export default class Login extends Component {
     this.makeCircle();
     this.setState({error: ""});
     const fd = {};
-    let num = 0;
     for(let ref in this.refs) {
       const r = this.refs[ref];
       if(r.state.text === "") {
         this.setState({error: "Please check your inputs and try again!"});
         this.unmakeCircle();
         break;
-        num --;
       } else {
         fd[r.props.objId] = r.state.text;
-        num ++;
       }
     }
     if(this.state.newUser) {
@@ -261,27 +258,27 @@ export default class Login extends Component {
 
   makeCircle = async () => {
     Animated.parallel([
-      Animated.timing(this.buttonAnim, { toValue: 38, duration: 300 }),
-      Animated.timing(this.borderRadius, { toValue: 38/2, duration: 300 }),
-      Animated.timing(this.opacity, { toValue: 0, duration: 150, useNativeDriver: true  }),
-      Animated.timing(this.scale, { toValue: 1, duration: 150, delay: 150, useNativeDriver: true })
+      Animated.timing(this.state.buttonAnim, { toValue: 38, duration: 300 }),
+      Animated.timing(this.state.borderRadius, { toValue: 38/2, duration: 300 }),
+      Animated.timing(this.state.opacity, { toValue: 0, duration: 150, useNativeDriver: true  }),
+      Animated.timing(this.state.scale, { toValue: 1, duration: 150, delay: 150, useNativeDriver: true })
     ]).start();
   }
 
   unmakeCircle = async () => {
     Animated.parallel([
-      Animated.timing(this.buttonAnim, { toValue: 300, duration: 300 }),
-      Animated.timing(this.borderRadius, { toValue: 2, duration: 300 }),
-      Animated.timing(this.opacity, { toValue: 1, duration: 150, delay: 300, useNativeDriver: true }),
-      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
-      Animated.timing(this.check, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true })
+      Animated.timing(this.state.buttonAnim, { toValue: 300, duration: 300 }),
+      Animated.timing(this.state.borderRadius, { toValue: 2, duration: 300 }),
+      Animated.timing(this.state.opacity, { toValue: 1, duration: 150, delay: 300, useNativeDriver: true }),
+      Animated.timing(this.state.scale, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
+      Animated.timing(this.state.check, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true })
     ]).start();
   }
 
   makeCheck = async () => {
     Animated.parallel([
-      Animated.timing(this.scale, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
-      Animated.timing(this.check, { toValue: 1, duration: 300, delay: 150, useNativeDriver: true })
+      Animated.timing(this.state.scale, { toValue: 0, duration: 300, delay: 0, useNativeDriver: true }),
+      Animated.timing(this.state.check, { toValue: 1, duration: 300, delay: 150, useNativeDriver: true })
     ]).start();
   }
 
@@ -299,18 +296,19 @@ export default class Login extends Component {
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#139A8F',
-          opacity: this.loginAnim.interpolate({
+          opacity: this.state.loginAnim.interpolate({
             inputRange: [0, 1],
             outputRange: [1, 0]
           }),
           transform: 
-            [
-              { scale: this.collapse.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 0]
-                })
-              }
-            ]
+          [
+            { 
+              scale: this.state.collapse.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0]
+              })
+            }
+          ]
         }}>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
@@ -333,27 +331,27 @@ export default class Login extends Component {
                     width: 70, 
                     marginBottom: -20,
                     opacity: this.props.height <= 568 && this.state.newUser ?
-                    this.fontSize.interpolate({
+                    this.state.fontSize.interpolate({
                       inputRange: [0, 1],
                       outputRange: [1, 0]
                     }) : 1,
                     transform: [
-                      {scale: this.hatScale.interpolate({
+                      {scale: this.state.hatScale.interpolate({
                           inputRange: [0, 0.5, 1],
                           outputRange: [0.75, 1, 1.3]
                         })
                       },
-                      {translateY: this.hatPosY.interpolate({
+                      {translateY: this.state.hatPosY.interpolate({
                           inputRange: [0, 1],
                           outputRange: [0, 120]
                         })
                       },
-                      {translateX: this.hatPosX.interpolate({
+                      {translateX: this.state.hatPosX.interpolate({
                           inputRange: [0, 1],
                           outputRange: [this.props.width / -1.5, 0]
                         })
                       }, 
-                      {rotate: this.hatRotate.interpolate({
+                      {rotate: this.state.hatRotate.interpolate({
                           inputRange: [0, 1],
                           outputRange: ['0deg', '360deg']
                         })
@@ -368,22 +366,22 @@ export default class Login extends Component {
                     color: '#fff',
                     fontWeight: '200',
                     marginBottom: 10,
-                    opacity: this.textPosX.interpolate({
+                    opacity: this.state.textPosX.interpolate({
                       inputRange: [0,1],
                       outputRange: [0, 1]
                     }),
                     transform: [
-                      {scale: this.fontSize.interpolate({
+                      {scale: this.state.fontSize.interpolate({
                           inputRange: [0, 1],
                           outputRange: [1, 0.75]
                         })
                       },
-                      {translateY: this.fontSize.interpolate({
+                      {translateY: this.state.fontSize.interpolate({
                           inputRange: [0, 1],
                           outputRange: [0, 20]
                         })
                       },
-                      {translateX: this.textPosX.interpolate({
+                      {translateX: this.state.textPosX.interpolate({
                           inputRange: [0, 1],
                           outputRange: [this.props.width / 2, 0]
                         })
@@ -406,7 +404,7 @@ export default class Login extends Component {
                     secure={false}
                     onEnter={null}
                     objId="fullName"
-                    entrance={this.inputPosX}
+                    entrance={this.state.inputPosX}
                     width={this.props.width} />
                 }
                 <LoginInput
@@ -417,7 +415,7 @@ export default class Login extends Component {
                   onEnter={null}
                   objId="Email"
                   secure={false}
-                  entrance={this.inputPosX}
+                  entrance={this.state.inputPosX}
                   width={this.props.width} />
                 <LoginInput
                   returnType="go" 
@@ -427,17 +425,17 @@ export default class Login extends Component {
                   for="Password"
                   onEnter={this.submit}
                   objId="Password"
-                  entrance={this.inputPosX}
+                  entrance={this.state.inputPosX}
                   width={this.props.width} />
                 <SubmitButton
-                  scale={this.scale}
-                  check={this.check}
-                  opacity={this.opacity}
+                  scale={this.state.scale}
+                  check={this.state.check}
+                  opacity={this.state.opacity}
                   submit={this.submit}
-                  borderRadius={this.borderRadius}
-                  buttonAnim={this.buttonAnim}
+                  borderRadius={this.state.borderRadius}
+                  buttonAnim={this.state.buttonAnim}
                   newUser={this.state.newUser}
-                  entrance={this.buttonPosX}
+                  entrance={this.state.buttonPosX}
                   width={this.props.width} />
                 <Animated.Text
                   style={{
@@ -445,13 +443,13 @@ export default class Login extends Component {
                     backgroundColor: 'transparent',
                     fontSize: 20,
                     fontWeight: '600',
-                    opacity: this.toggleOptionPosX.interpolate({
+                    opacity: this.state.toggleOptionPosX.interpolate({
                       inputRange: [0, 1],
                       outputRange: [0, 1]
                     }),
                     transform: [
                       { 
-                        translateY: this.toggleOptionPosX.interpolate({
+                        translateY: this.state.toggleOptionPosX.interpolate({
                           inputRange: [0, 1],
                           outputRange: [this.props.width / 2, 0]
                         })

@@ -1,5 +1,11 @@
 import React, { PureComponent } from 'react';
-import { View, Image, TouchableWithoutFeedback, Animated, Text } from 'react-native';
+import { 
+  View, 
+  Image, 
+  TouchableWithoutFeedback, 
+  Animated, 
+  Text 
+} from 'react-native';
 // import Burger from './Burger';
 import Burg from './Burg';
 

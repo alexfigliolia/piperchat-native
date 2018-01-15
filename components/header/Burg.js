@@ -10,14 +10,14 @@ export default class Burg extends Component {
   	super(props);
   	this.state = {
   		active: false,
-  		active2: false
+  		active2: false,
+  		top: new Animated.Value(0),
+  		middle: new Animated.Value(0),
+  		bottom: new Animated.Value(0),
+  		tbScale: new Animated.Value(0),
+  		tbX: new Animated.Value(0),
+  		cMove: new Animated.Value(0)
   	}
-  	this.top = new Animated.Value(0);
-  	this.middle = new Animated.Value(0);
-  	this.bottom = new Animated.Value(0);
-  	this.tbScale = new Animated.Value(0);
-  	this.tbX = new Animated.Value(0);
-  	this.cMove = new Animated.Value(0);
   	this.styles = {
 	  	container: {
 	  		height: 50,
@@ -30,13 +30,13 @@ export default class Burg extends Component {
         	{ scale: 0.9 },
         	{ translateY: 2 },
         	{
-	  				translateX: this.cMove.interpolate({
+	  				translateX: this.state.cMove.interpolate({
 	  					inputRange: [0, 1, 2],
 	  					outputRange: [2.5, -5, -15]
 	  				})
 	  			},
 	  			{
-	  				rotateY: this.tbX.interpolate({
+	  				rotateY: this.state.tbX.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: ['0deg', '180deg']
 	  				})
@@ -52,25 +52,25 @@ export default class Burg extends Component {
 	  		backgroundColor: '#fff',
 	  		transform: [
 	  			{
-	  				rotate: this.top.interpolate({
+	  				rotate: this.state.top.interpolate({
 	  					inputRange: [0, 1, 2],
 	  					outputRange: ['0deg', '-45deg', '-45deg']
 	  				})
 	  			},
 	  			{
-	  				translateY: this.top.interpolate({
+	  				translateY: this.state.top.interpolate({
 	  					inputRange: [0, 1, 2],
 	  					outputRange: [0, 11, -10]
 	  				})
 	  			},
 	  			{
-	  				translateX: this.tbX.interpolate({
+	  				translateX: this.state.tbX.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: [0, -15]
 	  				})
 	  			},
 	  			{
-	  				scaleX: this.tbScale.interpolate({
+	  				scaleX: this.state.tbScale.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: [1, 0.5]
 	  				})
@@ -84,19 +84,19 @@ export default class Burg extends Component {
 	  		height: 2,
 	  		width: 27.5,
 	  		backgroundColor: '#fff',
-	  		opacity: this.middle.interpolate({
+	  		opacity: this.state.middle.interpolate({
 					inputRange: [0, 1],
 					outputRange: [1, 0]
 				}),
 	  		transform: [
 	  			{
-	  				scaleX: this.middle.interpolate({
+	  				scaleX: this.state.middle.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: [1, 0]
 	  				})
 	  			},
 	  			{
-	  				translateX: this.tbX.interpolate({
+	  				translateX: this.state.tbX.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: [0, -6.5]
 	  				})
@@ -112,25 +112,25 @@ export default class Burg extends Component {
 	  		backgroundColor: '#fff',
 	  		transform: [
 	  			{
-	  				rotate: this.bottom.interpolate({
+	  				rotate: this.state.bottom.interpolate({
 	  					inputRange: [0, 1, 2],
 	  					outputRange: ['0deg', '45deg', '45deg']
 	  				})
 	  			},
 	  			{
-	  				translateY: this.bottom.interpolate({
+	  				translateY: this.state.bottom.interpolate({
 	  					inputRange: [0, 1, 2],
 	  					outputRange: [0, -10.5, 10]
 	  				})
 	  			},
 	  			{
-	  				translateX: this.tbX.interpolate({
+	  				translateX: this.state.tbX.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: [0, -15]
 	  				})
 	  			},
 	  			{
-	  				scaleX: this.tbScale.interpolate({
+	  				scaleX: this.state.tbScale.interpolate({
 	  					inputRange: [0, 1],
 	  					outputRange: [1, 0.5]
 	  				})
@@ -181,34 +181,34 @@ export default class Burg extends Component {
 
   makeX = () => {
   	Animated.parallel([
-  		Animated.spring(this.top, {toValue: 1, useNativeDriver: true}),
-  		Animated.timing(this.middle, {toValue: 1, duration: 200, useNativeDriver: true}),
-  		Animated.spring(this.bottom, {toValue: 1, useNativeDriver: true}),
-  		Animated.spring(this.tbX, {toValue: 0, useNativeDriver: true}),
-  		Animated.spring(this.tbScale, {toValue: 0, useNativeDriver: true}),
-  		Animated.spring(this.cMove, {toValue: 1, useNativeDriver: true}),
+  		Animated.spring(this.state.top, {toValue: 1, useNativeDriver: true}),
+  		Animated.timing(this.state.middle, {toValue: 1, duration: 200, useNativeDriver: true}),
+  		Animated.spring(this.state.bottom, {toValue: 1, useNativeDriver: true}),
+  		Animated.spring(this.state.tbX, {toValue: 0, useNativeDriver: true}),
+  		Animated.spring(this.state.tbScale, {toValue: 0, useNativeDriver: true}),
+  		Animated.spring(this.state.cMove, {toValue: 1, useNativeDriver: true}),
   	]).start();
   }
 
   unmakeX = () => {
   	Animated.parallel([
-  		Animated.spring(this.top, {toValue: 0, useNativeDriver: true}),
-  		Animated.timing(this.middle, {toValue: 0, duration: 200, useNativeDriver: true}),
-  		Animated.spring(this.bottom, {toValue: 0, useNativeDriver: true}),
-  		Animated.spring(this.tbScale, {toValue: 0, useNativeDriver: true}),
-  		Animated.spring(this.tbX, {toValue: 0, useNativeDriver: true}),
-  		Animated.spring(this.cMove, {toValue: 0, useNativeDriver: true}),
+  		Animated.spring(this.state.top, {toValue: 0, useNativeDriver: true}),
+  		Animated.timing(this.state.middle, {toValue: 0, duration: 200, useNativeDriver: true}),
+  		Animated.spring(this.state.bottom, {toValue: 0, useNativeDriver: true}),
+  		Animated.spring(this.state.tbScale, {toValue: 0, useNativeDriver: true}),
+  		Animated.spring(this.state.tbX, {toValue: 0, useNativeDriver: true}),
+  		Animated.spring(this.state.cMove, {toValue: 0, useNativeDriver: true}),
   	]).start();
   }
 
   makeArrow = () => {
   	Animated.parallel([
-  		Animated.spring(this.top, {toValue: 2, useNativeDriver: true}),
-  		Animated.timing(this.middle, {toValue: 0, duration: 200, useNativeDriver: true}),
-  		Animated.spring(this.bottom, {toValue: 2, useNativeDriver: true}),
-  		Animated.spring(this.tbScale, {toValue: 1, useNativeDriver: true}),
-  		Animated.spring(this.tbX, {toValue: 1, useNativeDriver: true}),
-  		Animated.spring(this.cMove, {toValue: 2, useNativeDriver: true}),
+  		Animated.spring(this.state.top, {toValue: 2, useNativeDriver: true}),
+  		Animated.timing(this.state.middle, {toValue: 0, duration: 200, useNativeDriver: true}),
+  		Animated.spring(this.state.bottom, {toValue: 2, useNativeDriver: true}),
+  		Animated.spring(this.state.tbScale, {toValue: 1, useNativeDriver: true}),
+  		Animated.spring(this.state.tbX, {toValue: 1, useNativeDriver: true}),
+  		Animated.spring(this.state.cMove, {toValue: 2, useNativeDriver: true}),
   	]).start();
   }
 

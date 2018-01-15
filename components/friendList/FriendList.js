@@ -21,7 +21,8 @@ export default class FriendList extends Component {
   		LCW: null,
   		requests: [],
   		search: [],
-  		text: ''
+  		text: '',
+      slider: new Animated.Value(1)
   	}
   	this.styles = StyleSheet.create({
   		center: {
@@ -46,7 +47,6 @@ export default class FriendList extends Component {
   			marginTop: 20,
   		}
   	});
-  	this.slider = new Animated.Value(1);
   	this.curList = [];
   }
 
@@ -61,9 +61,9 @@ export default class FriendList extends Component {
   measureLCW = (e) => this.setState({ LCW: e.nativeEvent.layout.width/3 });
 
   selectTab = (e, tab) => {
-  	if(tab === 'friends') Animated.spring(this.slider, { toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
-  	if(tab === 'requests') Animated.spring(this.slider, { toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5}).start();
-  	if(tab === 'users') Animated.spring(this.slider, { toValue: -1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
+  	if(tab === 'friends') Animated.spring(this.state.slider, { toValue: 1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
+  	if(tab === 'requests') Animated.spring(this.state.slider, { toValue: 0, useNativeDriver: true, tension: 150, friction: 12.5}).start();
+  	if(tab === 'users') Animated.spring(this.state.slider, { toValue: -1, useNativeDriver: true, tension: 150, friction: 12.5}).start();
   	this.setState({text: ''});
   	this.curList = null;
   	Keyboard.dismiss();
@@ -82,9 +82,9 @@ export default class FriendList extends Component {
   }
 
   focus = () => {
-  	if(this.slider._value > 0.5) {
+  	if(this.state.slider._value > 0.5) {
   		this.curList = this.props.friends;
-  	} else if(this.slider._value < 0){
+  	} else if(this.state.slider._value < 0){
   	 this.curList = this.props.users;
   	} else {
   		this.curList = this.state.requests;
@@ -94,16 +94,16 @@ export default class FriendList extends Component {
   blur = () => this.curList = null;
 
   search = (text) => {
-  	this.setState({text});
+  	this.setState({ text });
   	if(text === '') {
-  		this.setState({search: []});
+  		this.setState({ search: [] });
   	} else {
   		if(this.curList !== null) {
   			let res = [];
 	  		for(let i = 0; i<this.curList.length; i++) {
 	  			if(this.curList[i].name.toLowerCase().indexOf(text.toLowerCase()) !== -1) res.push(this.curList[i]);
 	  		}
-	  		this.setState({search: res});
+	  		this.setState({ search: res });
   		}
   	}
   }
@@ -244,7 +244,7 @@ export default class FriendList extends Component {
 	    						flexDirection: 'row', 
 	    						width: '300%', 
 	    						transform: [ 
-	    								{translateX: this.slider.interpolate({
+	    								{translateX: this.state.slider.interpolate({
 	    										inputRange: [-1, 0, 1],
 	    										outputRange: [this.state.LCW * -1, this.state.LCW * 0, this.state.LCW * 1 ]
 	    									})
@@ -252,7 +252,7 @@ export default class FriendList extends Component {
 	    							]
 	    						}}>
 	    					<UserList
-		    					listData={this.state.text !== '' && this.slider._value === 1 ? this.state.search : this.props.friends}
+		    					listData={this.state.text !== '' && this.state.slider._value === 1 ? this.state.search : this.props.friends}
 		    					height={this.props.height - 115}
 		    					active={true}
 		    					for="friends"
@@ -261,13 +261,13 @@ export default class FriendList extends Component {
                   unread={this.props.unread}
                   toggleChatOptions={this.props.toggleChatOptions} />
 		    				<UserList
-		    					listData={this.state.text !== '' && this.slider._value === 0 ? this.state.search : this.state.requests}
+		    					listData={this.state.text !== '' && this.state.slider._value === 0 ? this.state.search : this.state.requests}
 		    					height={this.props.height - 115}
 		    					active={true}
 		    					width={this.state.LCW}
 		    					for="requests" />
 		    				<UserList
-		    					listData={this.state.text !== '' && this.slider._value === -1 ? this.state.search : this.props.users}
+		    					listData={this.state.text !== '' && this.state.slider._value === -1 ? this.state.search : this.props.users}
 		    					height={this.props.height - 115}
 		    					active={true}
 		    					width={this.state.LCW}

@@ -5,11 +5,20 @@ import Meteor from 'react-native-meteor';
 export default class ChatBubble extends PureComponent {
   constructor(props) {
   	super(props);
+    this.state = {
+      enter: new Animated.Value(0)
+    }
+  }
+
+  componentDidMount = () => {
+    setTimeout(() => {
+      Animated.spring(this.state.enter, { toValue: 1, useNativeDriver: true }).start();
+    }, 500);
   }
 
   render = () => {
     return (
-    	<View
+    	<Animated.View
     		style={{
     			backgroundColor: this.props.from === Meteor.userId() ? '#51BFAF' : '#ECF0F0',
     			padding: 10,
@@ -25,13 +34,22 @@ export default class ChatBubble extends PureComponent {
 	        shadowColor: 'black',
 	        shadowOpacity: 0.15,
 	        minHeight: 10,
+          opacity: this.state.enter,
+          transform: [
+            { 
+              translateX: this.state.enter.interpolate({
+                inputRange: [0, 1],
+                outputRange: [this.props.from === Meteor.userId() ? 50 : -50, 0]
+              })
+            }
+          ]
     		}}>
     		<Text
     			style={{
     				color: this.props.from === Meteor.userId() ? '#fff' : '#000',
     				fontSize: 16
     			}}>{this.props.text}</Text>
-    	</View>    
+    	</Animated.View>    
     );
   }
 }

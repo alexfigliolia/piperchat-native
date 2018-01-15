@@ -15,9 +15,9 @@ export default class ReportAbuse extends Component {
 		super(props);
 		this.state = {
 			text: '',
-			RACW: 300
+			RACW: 300,
+			thanks: new Animated.Value(0)
 		}
-		this.thanks = new Animated.Value(0);
 	}
 
 	submit = () => {
@@ -35,17 +35,15 @@ export default class ReportAbuse extends Component {
 	}
 
 	thankyou = () => {
-		Animated.spring(this.thanks, { toValue: 1, useNativeDriver: true }).start();
+		Animated.spring(this.state.thanks, { toValue: 1, useNativeDriver: true }).start();
 	}
 
 	closeThankyou = () => {
-		Animated.spring(this.thanks, { toValue: 0, useNativeDriver: true }).start();
+		Animated.spring(this.state.thanks, { toValue: 0, useNativeDriver: true }).start();
 		this.props.openRA();
 	}
 
-	measureRACW = (e) => {
-		this.setState({ RACW: e.nativeEvent.layout.width });
-	}
+	measureRACW = (e) => this.setState({ RACW: e.nativeEvent.layout.width });
 
 	cancel = () => {
 		this.setState({text: ''}, () => {
@@ -85,7 +83,7 @@ export default class ReportAbuse extends Component {
     				justifyContent: 'center',
     				alignItems: 'center',
     				transform: [
-    						{translateX: this.thanks.interpolate({
+    						{translateX: this.state.thanks.interpolate({
     								inputRange: [0,1],
     								outputRange: [0, this.state.RACW * -1]
     							})

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Meteor from 'react-native-meteor';
 
-class UserItem extends Component {
+export default class UserItem extends Component {
   constructor(props) {
   	super(props);
   	this.state = {
@@ -202,5 +202,3 @@ class UserItem extends Component {
     );
   }
 }
-
-export default UserItem;

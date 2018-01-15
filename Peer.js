@@ -108,7 +108,7 @@ const Peer = {
 
   createAnswer: (offer) => {
     return () => {
-      rtcOffer = new RTCSessionDescription(JSON.parse(offer.offer));
+      let rtcOffer = new RTCSessionDescription(JSON.parse(offer.offer));
       Peer.peerConnection.setRemoteDescription(rtcOffer);
       Peer.peerConnection.createAnswer(
       	(answer) => {

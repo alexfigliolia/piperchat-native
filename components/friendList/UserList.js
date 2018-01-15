@@ -1,16 +1,10 @@
 import React, { Component } from 'react';
-import {
-	Animated,
-	FlatList
-} from 'react-native';
+import { Animated, FlatList } from 'react-native';
 import UserItem from './UserItem';
 
 export default class UserList extends Component {
-  constructor(props) {
-  	super(props);
-  }
 
-  checkPresent = (item) => {
+  checkPresent = async (item) => {
   	let isOn = false;
   	const states = this.props.states;
   	for(let i = 0; i<states.length; i++) {

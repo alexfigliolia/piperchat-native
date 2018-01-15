@@ -1,8 +1,6 @@
 import React from 'react';
 import { Animated, View } from 'react-native';
-import {
-  RTCView
-} from 'react-native-webrtc';
+import { RTCView } from 'react-native-webrtc';
 
 const You = (props) => {
   return (
