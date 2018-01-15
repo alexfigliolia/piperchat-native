@@ -97,6 +97,7 @@ export default class Me extends Component {
     		{...this.panResponder.panHandlers}>
     		<RTCView
           objectFit="cover"
+          mirror={true}
       		style={{
       			height: '100%',
           	width: '100%',

@@ -348,7 +348,6 @@ export default class App extends Component {
     ]).start(() => {
       this.setState({initializingCall: false, connectingActive: false, remote: this.state.local}, () => {
         this.ring.stop();
-        this.getLocalStream();
       });
     });
   }
