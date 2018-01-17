@@ -4,7 +4,7 @@ import UserItem from './UserItem';
 
 export default class UserList extends Component {
 
-  checkPresent = async (item) => {
+  checkPresent = (item) => {
   	let isOn = false;
   	const states = this.props.states;
   	for(let i = 0; i<states.length; i++) {

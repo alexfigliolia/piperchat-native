@@ -488,7 +488,7 @@ export default class App extends Component {
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
-    this.hideConnecting();
+    setTimeout(this.hideConnecting, 500);
   }
 
   displayConnectionError = (err) => {
