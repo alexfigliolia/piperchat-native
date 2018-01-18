@@ -7,8 +7,7 @@ import {
   Animated,
   Dimensions,
   Keyboard,
-  ActivityIndicator,
-  AppState
+  ActivityIndicator
 } from 'react-native';
 import { 
   checkSelfFriend, 
@@ -83,7 +82,6 @@ export default class App extends Component {
       errorTranslate: new Animated.Value(0),
     }
     this.ring = null;
-    this.appState = null;
   }
 
   componentWillMount = () => Meteor.connect(SERVER_URL);
@@ -99,12 +97,10 @@ export default class App extends Component {
     });
     StatusBarSizeIOS.addEventListener('willChange', this.adjustHeight);
     this.ring = loadSound();
-    AppState.addEventListener('change', this.handleStateChange);
   }
 
   componentWillUnmount = () => {
     StatusBarSizeIOS.removeEventListener('willChange', this.adjustHeight);
-    AppState.removeEventListener('change', this.handleStateChange);
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -166,14 +162,6 @@ export default class App extends Component {
     Meteor.call('users.getObjects', arr, (err, res) => {
       if(err) { console.log(err) } else { this.setState({ sentRequests: res }) }
     });
-  }
-
-  handleStateChange = (nextState) => {
-    if(this.appState === 'inactive' && nextState === 'active') {
-      this.terminatePeer();
-      this.getLocalStream();
-    }
-    this.appState = nextState;
   }
 
   checkMessages = async (messageList) => {
