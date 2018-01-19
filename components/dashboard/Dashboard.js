@@ -51,7 +51,8 @@ export default class Dashboard extends Component {
           acceptCall={this.props.acceptCall}
           hideConnecting={this.props.hideConnecting}
           initializingCall={this.props.initializingCall}
-          currentFriend={this.props.currentFriend} />
+          currentFriend={this.props.currentFriend}
+          incomingUser={this.props.incomingUser} />
         <ConnectionError 
           error={this.props.connectionError}
           translate={this.props.errorTranslate}

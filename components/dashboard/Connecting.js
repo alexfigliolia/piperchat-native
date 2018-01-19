@@ -36,22 +36,11 @@ export default class Connecting extends Component {
   			position: 'relative',
         zIndex: 3,
   		},
-  		loader: {
-  			height: 50,
-  			width: 50,
-        marginBottom: 50,
-  			transform: [
-  				{ scale: this.props.with.interpolate({
-  						inputRange: [0, 1],
-  						outputRange: [0, 1]
-  					})
-  				}
-  			]
-  		},
       friendImage: {
-        height: 90,
-        width: 90,
-        marginBottom: 50,
+        height: 130,
+        width: 130,
+        marginTop: -50,
+        marginBottom: 20,
         transform: [
           { scale: this.props.with.interpolate({
               inputRange: [0, 1],
@@ -59,8 +48,14 @@ export default class Connecting extends Component {
             })
           }
         ],
-        borderRadius: 90/2,
-        overflow: 'hidden'
+        borderRadius: 130/2,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset:{ width: 0,  height: 5 },
+        shadowColor: 'black',
+        shadowOpacity: 0.6,
+        shadowRadius: 5,
+        backgroundColor: '#139A8F',
       },
   		buttonsContainer: {
   			justifyContent: 'center',
@@ -106,7 +101,7 @@ export default class Connecting extends Component {
   }
 
   render = () => {
-    const friendImage = this.props.currentFriend.image === undefined ? null : this.props.currentFriend.image;
+    const friendImage = this.props.initializingCall ? this.props.currentFriend.image : this.props.incomingUser;
     return (
     	<Animated.View
     		style={this.styles.container}>
@@ -125,9 +120,9 @@ export default class Connecting extends Component {
               top: 0,
               left: 0
             }}></Animated.View>
-    			<Animated.Image
-            style={this.styles.loader}
-            source={require('../../public/loader.gif')}></Animated.Image>
+          <Animated.Image 
+            style={this.styles.friendImage}
+            source={friendImage === null ? require('../../public/person.png') : {uri: friendImage}} />
 	    		<View
 	    			style={this.styles.buttonsContainer}>
 	    			<Animated.View>

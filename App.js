@@ -66,6 +66,7 @@ export default class App extends Component {
       local: null,
       remote: null,
       canMakeCalls: false,
+      incomingUser: null,
       menuAnim: new Animated.Value(0),
       menuMove: new Animated.Value(0),
       raAnim: new Animated.Value(0),
@@ -415,6 +416,7 @@ export default class App extends Component {
     this.socket = Peer.socket;
     this.socket.on('offer', (offer) => {
       // console.log('receiving an offer');
+      this.setState({ incomingUser: offer.image });
       if(Peer.accepted === null || Peer.accepted === false) {
         this.displayConnecting();
         this.playRing();
@@ -572,7 +574,8 @@ export default class App extends Component {
               connectionError={this.state.connectionError}
               errorScale={this.state.errorScale}
               errorTranslate={this.state.errorTranslate}
-              dismissConnectionError={this.dismissConnectionError} />
+              dismissConnectionError={this.dismissConnectionError}
+              incomingUser={this.state.incomingUser} />
           }
 
           {

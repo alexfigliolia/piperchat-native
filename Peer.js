@@ -95,6 +95,7 @@ const Peer = {
         Peer.socket.emit('offer', {
         	to: Peer.receivingUser, 
         	from: Meteor.user().profile.peerId,
+          fromImage: Meteor.user().image,
         	offer: JSON.stringify(offer)
         });
         console.log('making the call');
