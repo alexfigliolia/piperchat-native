@@ -275,7 +275,7 @@ export default class App extends Component {
 
   toggleChatOptions = async (e, person) => {
     if(person !== undefined) {
-      this.setState({currentFriendSelection: person});
+      this.setState({currentFriendSelection: person, incomingUser: person.image });
     }
     if(this.state.modalActive === 0) {
       Animated.spring(this.state.modalAnim, { toValue: 1, useNativeDriver: true }).start();
@@ -350,6 +350,7 @@ export default class App extends Component {
   }
 
   openCall = () => {
+    Peer.inCall = true;
     this.toggleChatOptions();
     this.setState({ initializingCall: true });
     setTimeout(() => { this.openFriendList() }, 300);
@@ -444,10 +445,15 @@ export default class App extends Component {
     this.socket.on('friendConnectionError', (err) => this.displayConnectionError(err));
     this.socket.on("connect", () => this.setState({canMakeCalls: true}));
     this.socket.on("connect_failed", () => this.setState({canMakeCalls: false}));
+    this.socket.on('busy', (err) => {
+      Peer.inCall = false;
+      this.displayConnectionError(err)
+    });
     this.socket.on('disconnect', () => this.setState({canMakeCalls: false}));
     this.socket.on('remoteStream', (stream) => {
       console.log('receiving remote stream', stream);
       this.setState({ remote: stream.toURL() });
+      Peer.inCall = true;
     });
     this.socket.on('endChat', (res) => this.terminatePeer());
   }
@@ -466,10 +472,12 @@ export default class App extends Component {
     this.setState({ initializingCall: true });
   }
 
-  endCall = () => {
+  endCall = (emit=true) => {
     console.log('called endCall');
-    const other = Peer.receivingUser === null ? Peer.sendAnswerTo : Peer.receivingUser;
-    this.socket.emit('endChat', other);
+    if(emit) {
+      const other = Peer.receivingUser === null ? Peer.sendAnswerTo : Peer.receivingUser;
+      this.socket.emit('endChat', other);
+    }
     this.terminatePeer();
   }
 
@@ -478,15 +486,19 @@ export default class App extends Component {
     Peer.receivingUser = null;
     Peer.sendAnswerTo = null;
     Peer.accepted = null;
+    Peer.inCall = false;
     setTimeout(this.hideConnecting, 500);
   }
 
   displayConnectionError = (err) => {
     this.setState({connectionError: err});
+    this.hideConnecting();
     Animated.parallel([
       Animated.spring(this.state.errorScale, {toValue: 1, useNativeDriver: true}),
       Animated.spring(this.state.errorTranslate, {toValue: 1, useNativeDriver: true})
-    ]).start();
+    ]).start(() => {
+      this.endCall(false);
+    });
   }
 
   dismissConnectionError = () => {
@@ -629,7 +641,8 @@ export default class App extends Component {
             openCall={this.openCall}
             states={this.props.states}
             currentFriend={this.state.currentFriendSelection}
-            canMakeCalls={this.state.canMakeCalls} />
+            canMakeCalls={this.state.canMakeCalls}
+            inCall={Peer.inCall} />
 
           {
             this.state.loggedIn &&

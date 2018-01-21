@@ -101,7 +101,6 @@ export default class Connecting extends Component {
   }
 
   render = () => {
-    const friendImage = this.props.initializingCall ? this.props.currentFriend.image : this.props.incomingUser;
     return (
     	<Animated.View
     		style={this.styles.container}>
@@ -122,7 +121,7 @@ export default class Connecting extends Component {
             }}></Animated.View>
           <Animated.Image 
             style={this.styles.friendImage}
-            source={friendImage === null ? require('../../public/person.png') : {uri: friendImage}} />
+            source={this.props.incomingUser === null ? require('../../public/person.png') : {uri: this.props.incomingUser}} />
 	    		<View
 	    			style={this.styles.buttonsContainer}>
 	    			<Animated.View>

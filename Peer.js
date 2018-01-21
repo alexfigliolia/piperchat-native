@@ -15,6 +15,7 @@ const Peer = {
 	sendAnswerTo: null,
 	receivingUser: null,
 	accepted: null,
+  inCall: false,
 
 	init: (user) => {
     Peer.socket = io('https://piper-signaler.herokuapp.com',
@@ -125,8 +126,12 @@ const Peer = {
   },
 
   onOffer: (offer) => {
-    Peer.sendAnswerTo = offer.from;
-    if(Peer.accepted) Peer.initConn(Peer.createAnswer(offer));
+    if(Peer.inCall === true) {
+      Peer.socket.emit('busy', offer.from);
+    } else {
+      Peer.sendAnswerTo = offer.from;
+      if(Peer.accepted) Peer.initConn(Peer.createAnswer(offer));
+    }
   },
 
   onAnswer: (answer) => {
@@ -135,6 +140,7 @@ const Peer = {
   },
 
   onAddStream: (event) => {
+    Peer.inCall = true;
     Peer.socket.emit('remoteStream', event.stream);
   }
 

@@ -62,7 +62,9 @@ export default class Modal extends Component {
 			    ]
     		}}>
     		{
-          this.state.online && this.props.canMakeCalls ?
+          this.state.online && 
+          this.props.canMakeCalls &&
+          !this.props.inCall ?
           <TouchableOpacity
             onPress={this.props.openCall}
             style={{
